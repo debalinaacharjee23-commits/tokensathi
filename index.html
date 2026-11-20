@@ -2,474 +2,246 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <meta name="theme-color" content="#070b14" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="TokenSathi" />
-  <title>TokenSathi ⚡ — Eliminate the Indic Token Tax</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenSathi — Zero-Cost Indic Prompt Optimizer</title>
+  <link rel="stylesheet" href="style.css" />
   <style>
     :root {
-      --bg: #070b14;
-      --card: rgba(19, 26, 42, 0.88);
-      --border: rgba(56, 189, 248, 0.22);
-      --text: #f8fafc;
+      --bg: #0b0f19;
+      --card: #131a2a;
+      --border: #232e47;
+      --text: #e2e8f0;
       --muted: #94a3b8;
       --accent: #38bdf8;
       --green: #10b981;
-      --red: #ef4444;
       --amber: #f59e0b;
-      --purple: #a855f7;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body {
-      background: radial-gradient(circle at top right, #111c35 0%, var(--bg) 55%);
-      color: var(--text); padding: 18px; line-height: 1.5; min-height: 100vh;
-    }
-    .container { max-width: 1120px; margin: 0 auto; }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); padding: 20px; }
+    .container { max-width: 980px; margin: 0 auto; }
     header {
-      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
-      margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
     }
-    .brand h1 { font-size: 1.7rem; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .brand p { color: var(--muted); font-size: 0.88rem; }
-    .header-actions { display: flex; gap: 8px; align-items: center; }
-    .badge { background: rgba(56, 189, 248, 0.12); color: var(--accent); border: 1px solid var(--accent); padding: 5px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
-
-    .tabs { display: flex; gap: 8px; margin-bottom: 18px; overflow-x: auto; padding-bottom: 4px; }
-    .tab-btn {
-      background: rgba(15, 23, 42, 0.85); color: var(--muted); border: 1px solid var(--border);
-      padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s;
+    .brand h1 { margin: 0; font-size: 1.5rem; color: #fff; }
+    .brand p { margin: 4px 0 0; font-size: 0.85rem; color: var(--muted); }
+    .badge-free {
+      background: rgba(16, 185, 129, 0.15); color: var(--green);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 6px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 600;
     }
-    .tab-btn.active { background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(168, 85, 247, 0.22)); color: #fff; border-color: var(--accent); }
-
-    .card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-      padding: 18px; margin-bottom: 18px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 18px 0 12px;
     }
-    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-    select, textarea {
-      background: #0b1120; color: var(--text); border: 1px solid #26334d;
-      border-radius: 8px; padding: 10px 12px; font-size: 0.95rem;
+    select, button {
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; cursor: pointer;
     }
-    textarea { width: 100%; min-height: 88px; resize: vertical; margin-bottom: 12px; font-size: 1.02rem; }
-    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-    button { border: none; border-radius: 8px; padding: 10px 16px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: 0.15s; }
-    button:hover { transform: translateY(-1px); filter: brightness(1.1); }
-    .btn-primary { background: var(--accent); color: #04101c; }
-    .btn-opt { background: var(--purple); color: #fff; }
-    .btn-race { background: var(--green); color: #031910; }
-    .btn-sample { background: #1e293b; color: var(--text); border: 1px solid #334155; font-size: 0.8rem; padding: 6px 10px; }
-
-    .roi-bar {
-      background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3);
-      border-radius: 10px; padding: 12px 16px; margin-bottom: 18px;
-      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+    .pill { border-radius: 999px; font-size: 0.82rem; padding: 6px 12px; }
+    .pill.active { background: var(--accent); color: #0b0f19; font-weight: 700; border-color: var(--accent); }
+    textarea {
+      width: 100%; min-height: 140px; background: var(--card); color: #fff;
+      border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+      font-size: 1rem; line-height: 1.5; resize: vertical;
     }
-    input[type="range"] { accent-color: var(--green); width: 220px; cursor: pointer; }
-
-    .router-box { border-left: 4px solid var(--accent); background: rgba(56, 189, 248, 0.08); padding: 14px; border-radius: 8px; margin-bottom: 18px; }
-    .router-title { font-weight: 700; color: var(--accent); font-size: 0.95rem; display: flex; justify-content: space-between; }
-    .risk-tag { display: inline-block; background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid var(--amber); font-size: 0.78rem; padding: 2px 8px; border-radius: 6px; margin-top: 6px; margin-right: 6px; }
-
-    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 18px; }
-    .stat { background: #0b1120; border: 1px solid #1e293b; border-radius: 10px; padding: 14px; }
-    .stat-label { font-size: 0.76rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    .stat-val { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
-    .red { color: var(--red); } .green { color: var(--green); } .amber { color: var(--amber); }
-
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.9rem; }
-    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #1e293b; }
-    th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; }
-    .bar-wrap { background: #0b1120; border-radius: 6px; height: 12px; width: 100%; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 6px; transition: width 0.35s ease; }
-
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
-    .box-dark { background: #0b1120; border: 1px solid #1e293b; border-radius: 10px; padding: 14px; }
-    .chip { display: inline-block; padding: 3px 7px; margin: 3px; border-radius: 5px; font-family: monospace; font-size: 0.85rem; }
-    .chip-bad { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: #fca5a5; }
-    .chip-good { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #6ee7b7; }
-    .reply-bubble { background: #131c31; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.92rem; }
-    .hidden { display: none; }
+    .tabs { display: flex; gap: 8px; margin: 18px 0; flex-wrap: wrap; }
+    .tab-btn { font-weight: 600; }
+    .tab-btn.active { background: #1e293b; border-color: var(--accent); color: var(--accent); }
+    .action-row { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--accent); color: #0b0f19; font-weight: 700; border: none; padding: 10px 18px;
+    }
+    .panel { display: none; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .panel.active { display: block; }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;
+    }
+    .stat-card {
+      background: #0f1523; border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+    }
+    .stat-card small { color: var(--muted); display: block; margin-bottom: 4px; }
+    .stat-card strong { font-size: 1.3rem; color: #fff; }
+    .output-box {
+      background: #0f1523; border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px; white-space: pre-wrap; line-height: 1.6; margin-top: 10px;
+    }
+    .status-pass { color: var(--green); font-weight: 700; }
+    .status-warn { color: var(--amber); font-weight: 700; }
+    .entity-tag {
+      display: inline-block; background: rgba(56, 189, 248, 0.15); color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 6px;
+      padding: 2px 8px; margin: 2px 4px 2px 0; font-size: 0.82rem;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <div class="brand">
-        <h1>TokenSathi ⚡</h1>
-        <p>Indic Token Tax Scanner, AI Prompt Compressor & Smart LLM Router</p>
+        <h1>⚡ TokenSathi</h1>
+        <p>Eliminate Indic Prompt Token Tax • Pure Deterministic Compression</p>
       </div>
-      <div class="header-actions">
-        <button class="btn-sample" onclick="copyShareLink()">🔗 Share Live App</button>
-        <span class="badge">Gemini 2.5 + NLLB + Qwen</span>
-      </div>
+      <div class="badge-free">100% Rule-Based Engine • ₹0 Token Cost</div>
     </header>
 
-    <div class="card">
-      <div class="controls">
-        <select id="language">
-          <option value="Kannada">🇮🇳 Kannada (ಕನ್ನಡ)</option>
-          <option value="Hindi">🇮🇳 Hindi (हिन्दी)</option>
-          <option value="Telugu">🇮🇳 Telugu (తెలుగు)</option>
-          <option value="Bengali">🇮🇳 Bengali (বাংলা)</option>
-          <option value="English">🇬🇧 English</option>
-        </select>
-
-        <button class="btn-sample" onclick="loadPreset('Kannada')">Kannada</button>
-        <button class="btn-sample" onclick="loadPreset('Hindi')">Hindi</button>
-        <button class="btn-sample" onclick="loadPreset('Telugu')">Telugu</button>
-        <button class="btn-sample" onclick="loadPreset('Bengali')">Bengali</button>
-        <button class="btn-sample" onclick="loadBloatedSample()">✨ Bloated Prompt Sample</button>
-      </div>
-
-      <textarea id="promptInput" placeholder="Enter your query in Kannada, Hindi, Telugu, Bengali, or English...">ನನ್ನ ಆರ್ಡರ್ #4821 ಎಲ್ಲಿದೆ ಮತ್ತು ನನ್ನ EMI ಪಾವತಿ ವಿವರಗಳನ್ನು ತಿಳಿಸಿ?</textarea>
-
-      <div class="btn-row">
-        <button class="btn-primary" onclick="switchTab('tab-scanner'); runAnalyze();">🌍 Scan Token Tax</button>
-        <button class="btn-opt" onclick="switchTab('tab-optimizer'); runOptimizePrompt();">✨ Optimize My Prompt</button>
-        <button class="btn-race" onclick="switchTab('tab-router'); runRace();">⚡ Run Live Pipeline Race</button>
-      </div>
+    <!-- Language Controls -->
+    <div class="controls">
+      <select id="langSelect" aria-label="Language Selector">
+        <option value="Bengali">IN Bengali (বাংলা)</option>
+        <option value="Kannada">IN Kannada (ಕನ್ನಡ)</option>
+        <option value="Hindi">IN Hindi (हिन्दी)</option>
+        <option value="Telugu">IN Telugu (తెలుగు)</option>
+        <option value="English">US English</option>
+      </select>
+      <button type="button" class="pill active" data-lang="Bengali">Bengali</button>
+      <button type="button" class="pill" data-lang="Kannada">Kannada</button>
+      <button type="button" class="pill" data-lang="Hindi">Hindi</button>
+      <button type="button" class="pill" data-lang="English">English</button>
     </div>
 
+    <!-- Prompt Input -->
+    <textarea id="promptInput" placeholder="Paste or type your Bengali, Kannada, Hindi, or English prompt here..."></textarea>
+
+    <div class="action-row">
+      <button type="button" id="runBtn" class="btn-primary">Optimize & Analyze Prompt</button>
+      <button type="button" id="sampleBtn">Load Sample Prompt</button>
+    </div>
+
+    <!-- Tabs -->
     <div class="tabs">
-      <button id="btn-tab-scanner" class="tab-btn active" onclick="switchTab('tab-scanner')">1. 🌍 Token Tax Scanner & X-Ray</button>
-      <button id="btn-tab-optimizer" class="tab-btn" onclick="switchTab('tab-optimizer')">2. ✨ AI Prompt Optimizer</button>
-      <button id="btn-tab-router" class="tab-btn" onclick="switchTab('tab-router')">3. ⚡ Smart Router & 4-Lang Benchmark</button>
+      <button type="button" class="tab-btn active" data-tab="tab1">1. Token Tax Scanner</button>
+      <button type="button" class="tab-btn" data-tab="tab2">2. Rule-Based Optimizer</button>
+      <button type="button" class="tab-btn" data-tab="tab3">3. Smart Router & Entity Shield</button>
     </div>
 
-    <div id="tab-scanner">
-      <div class="roi-bar">
+    <!-- TAB 1: Scanner -->
+    <div id="tab1" class="panel active">
+      <h3>Token Tax Breakdown</h3>
+      <div class="stats-grid">
+        <div class="stat-card"><small>Detected Script</small><strong id="scanLang">—</strong></div>
+        <div class="stat-card"><small>Legacy Tokens</small><strong id="scanOrig">0</strong></div>
+        <div class="stat-card"><small>Optimized Tokens</small><strong id="scanOpt">0</strong></div>
+        <div class="stat-card"><small>Token Tax Saved</small><strong id="scanSaved" style="color: var(--green);">0%</strong></div>
+      </div>
+      <p style="color: var(--muted); font-size: 0.9rem;">
+        Calculated locally using UTF-8 Indic subword inflation math. Zero external APIs or paid tokens used.
+      </p>
+    </div>
+
+    <!-- TAB 2: Optimizer -->
+    <div id="tab2" class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <h3 style="margin:0;">Compressed Prompt Output</h3>
         <div>
-          <strong>Startup Scale Simulator:</strong> <span id="sliderLabel" class="green">10,000</span> daily chats
-          <br/><input type="range" id="dailySlider" min="1000" max="500000" step="1000" value="10000" oninput="updateSliderROI()" />
-        </div>
-        <div style="text-align: right;">
-          <span class="stat-label">Estimated Annual Savings</span>
-          <div class="stat-val green" id="annualSaved">₹0 / yr</div>
+          <span>Meaning Preserved: </span>
+          <span id="meaningBadge" class="status-pass">—</span>
+          <button type="button" id="copyBtn" style="margin-left:10px;">Copy Output</button>
         </div>
       </div>
-
-      <div class="grid-4">
-        <div class="stat"><div class="stat-label">Indic Token Tax</div><div class="stat-val red" id="taxMultiplier">0x</div></div>
-        <div class="stat"><div class="stat-label">Legacy → Optimized</div><div class="stat-val" id="tokenCountCompare">0 → 0</div></div>
-        <div class="stat"><div class="stat-label">Token Reduction</div><div class="stat-val green" id="savingsPct">0%</div></div>
-        <div class="stat"><div class="stat-label">Monthly Saved</div><div class="stat-val green" id="monthlySaved">₹0</div></div>
-      </div>
-
-      <div class="card">
-        <h3 style="margin-bottom: 8px; font-size: 1.05rem;">🌍 5-Language Token Tax Comparison (Same Meaning)</h3>
-        <table>
-          <thead>
-            <tr><th>Language</th><th>Tokens</th><th>Difference vs English</th><th style="width: 38%;">Visual Tax Bar</th></tr>
-          </thead>
-          <tbody id="scannerTableBody"></tbody>
-        </table>
-      </div>
-
-      <div class="card">
-        <h3 style="margin-bottom: 10px; font-size: 1.05rem;">🔬 Token X-Ray Heatmap (Fragmentation Inspector)</h3>
-        <div class="two-col">
-          <div>
-            <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 6px;">Standard Tokenizer (Broken Byte Fragments)</p>
-            <div class="box-dark" id="legacyTokensBox"></div>
-          </div>
-          <div>
-            <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 6px;">Cleaned + Multilingual Tokenizer</p>
-            <div class="box-dark" id="optTokensBox"></div>
-          </div>
-        </div>
-      </div>
+      <div id="compressedOutput" class="output-box">Click "Optimize & Analyze Prompt" to see compressed output.</div>
     </div>
 
-    <div id="tab-optimizer" class="hidden">
-      <div class="card" style="border-color: var(--purple);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <h3 style="color: #d8b4fe;">✨ TokenSathi Prompt Optimizer — Before vs. After</h3>
-          <span class="badge" style="border-color: var(--green); color: var(--green);">Meaning Preserved: <span id="meaningPass">PASS</span></span>
-        </div>
-
-        <div class="two-col" style="margin-top: 14px;">
-          <div class="box-dark">
-            <div class="stat-label">Original Prompt (<span id="optBeforeTokens" class="red">0</span> Tokens)</div>
-            <p id="optBeforeText" style="margin-top: 8px; color: var(--muted);"></p>
-          </div>
-          <div class="box-dark" style="border-color: var(--green);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div class="stat-label">Optimized (<span id="optAfterTokens" class="green">0</span> Tokens • <span id="optReductionPct" class="green">0%</span> Saved)</div>
-              <button class="btn-sample" onclick="copyOptimizedPrompt()">📋 Copy</button>
-            </div>
-            <p id="optAfterText" style="margin-top: 8px; font-weight: 600;"></p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-router" class="hidden">
-      <div class="router-box">
-        <div class="router-title">
-          <span id="routerRoute">SMART ROUTER DECISION</span>
-          <span id="routerConf"></span>
-        </div>
-        <div id="routerReason" style="font-size: 0.9rem; margin-top: 4px;"></div>
-        <div id="riskContainer"></div>
-      </div>
-
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <h3 style="font-size: 1.1rem;">⚡ Live Pipeline Race: Native Script vs. TokenSathi Router</h3>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <label style="font-size: 0.85rem; color: var(--muted);"><input type="checkbox" id="hybridMode" checked /> Entity Shield</label>
-            <button class="btn-sample" onclick="runBatchBenchmark()">📊 Run 4-Language Scorecard</button>
-            <span class="badge" id="raceRouteBadge">Ready</span>
-          </div>
-        </div>
-
-        <div class="two-col" style="margin-top: 14px;">
-          <div class="box-dark">
-            <h4 class="red">❌ Standard Native Pipeline</h4>
-            <p style="font-size: 0.85rem; color: var(--muted); margin-top: 6px;">
-              Tokens: <strong id="nativeTokens">0</strong> | Latency: <strong id="nativeLatency">0 ms</strong> | Cost: <strong id="nativeCost">₹0</strong>
-            </p>
-            <div class="reply-bubble" id="nativeReply"></div>
-          </div>
-
-          <div class="box-dark" style="border-color: var(--green);">
-            <h4 class="green">✅ TokenSathi Smart Pipeline</h4>
-            <p style="font-size: 0.85rem; color: var(--muted); margin-top: 6px;">
-              Tokens: <strong class="green" id="smartTokens">0</strong> (<span id="raceReduction">0%</span> saved) | Latency: <strong id="smartLatency">0 ms</strong> | Quality: <strong class="green" id="qualityScore">0%</strong>
-            </p>
-            <p style="font-size: 0.8rem; color: var(--accent); margin-top: 6px;"><strong>English Pivot:</strong> <span id="englishPivot"></span></p>
-            <div class="reply-bubble" id="smartReply"></div>
-          </div>
-        </div>
-
-        <div id="batchScorecard" class="hidden" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #1e293b;">
-          <h4 style="color: var(--accent); margin-bottom: 8px;">📊 Judge Benchmark Scorecard (Kannada, Hindi, Telugu & Bengali)</h4>
-          <div class="grid-4" id="batchMetrics"></div>
-        </div>
-      </div>
+    <!-- TAB 3: Smart Router & Entity Shield -->
+    <div id="tab3" class="panel">
+      <h3>Deterministic Intent & Entity Shield</h3>
+      <p><strong>Protected Entities:</strong> None detected yet</span></p>
+      <div class="output-box" id="pivotOutput">Structured rule-based intent mapping will appear here.</div>
     </div>
   </div>
 
   <script>
-    const PRESETS = {
-      Kannada: "ನನ್ನ ಆರ್ಡರ್ #4821 ಎಲ್ಲಿದೆ ಮತ್ತು ನನ್ನ EMI ಪಾವತಿ ವಿವರಗಳನ್ನು ತಿಳಿಸಿ?",
-      Hindi: "मेरा ऑर्डर #4821 कहाँ है और मेरी EMI भुगतान का विवरण क्या है?",
-      Telugu: "నా ఆర్డర్ #4821 ఎక్కడ ఉంది మరియు నా EMI చెల్లింపు వివరాలు ఏమిటి?",
-      Bengali: "আমার অর্ডার #4821 কোথায় এবং আমার EMI পেমেন্টের বিবরণ কী?",
-      English: "Where is my order #4821 and what are my EMI payment details?"
+    const promptInput = document.getElementById("promptInput");
+    const langSelect = document.getElementById("langSelect");
+    const pills = document.querySelectorAll(".pill");
+
+    const SAMPLES = {
+      Bengali: "হ্যালো, আমার আসলে একটা খুব জরুরি সাহায্যের দরকার ছিল, আমি আমার অফিসের বসের কাছে একটা ইমেইল লিখতে চাই কারণ আমাদের নতুন প্রজেক্টটা নির্ধারিত সময়ের চেয়ে একটু পিছিয়ে গেছে, এর মূল কারণ হলো ভেন্ডর সময়মতো ফাইল দেয়নি আর দুজন সদস্য অসুস্থ ছিল, তাই ফাইনাল ডেডলাইনের জন্য আরও ৩ দিন বাড়তি সময় চাইতে চাচ্ছি, তবে বাজেট একদম ঠিক আছে।",
+      Kannada: "ನಮಸ್ಕಾರ, ನನಗೆ ತುಂಬಾ ತುರ್ತು ಸಹಾಯ ಬೇಕಾಗಿದೆ, ನಮ್ಮ ಹೊಸ ಪ್ರಾಜೆಕ್ಟ್ ಕೆಲಸ ಸ್ವಲ್ಪ ತಡವಾಗಿದೆ, ಆದ್ದರಿಂದ ದಯವಿಟ್ಟು ನಮಗೆ 3 ದಿನ ಹೆಚ್ಚುವರಿ ಸಮಯ ನೀಡುವಂತೆ ಬಾಸ್‌ಗೆ ಒಂದು ಇಮೇಲ್ ಬರೆಯಿರಿ.",
+      Hindi: "नमस्ते, मुझे वास्तव में आपकी मदद की ज़रूरत है, हमारा प्रोजेक्ट थोड़ा लेट हो गया है इसलिए कृपया बॉस को 3 दिन का अतिरिक्त समय मांगने के लिए एक छोटा ईमेल लिखें।",
+      English: "Hey, I really need your help writing an email to my boss because our project is running behind due to a vendor delay, so please ask for a 3 day extension while reassuring them our budget is intact."
     };
 
-    const FLAGS = {
-      English: "🇬🇧 English",
-      Kannada: "🇮🇳 Kannada",
-      Hindi: "🇮🇳 Hindi",
-      Telugu: "🇮🇳 Telugu",
-      Bengali: "🇮🇳 Bengali"
-    };
+    function detectScript(text) {
+      if (/[\u0980-\u09FF]/.test(text)) return "Bengali";
+      if (/[\u0C80-\u0CFF]/.test(text)) return "Kannada";
+      if (/[\u0900-\u097F]/.test(text)) return "Hindi";
+      if (/[\u0C00-\u0C7F]/.test(text)) return "Telugu";
+      return "English";
+    }
 
-    let lastLegacyTokens = 60;
-    let lastOptTokens = 23;
+    function syncLanguageUI(lang) {
+      langSelect.value = lang;
+      pills.forEach(p => p.classList.toggle("active", p.dataset.lang === lang));
+    }
 
-    function switchTab(tabId) {
-      ["tab-scanner", "tab-optimizer", "tab-router"].forEach(id => {
-        document.getElementById(id).classList.add("hidden");
-        document.getElementById("btn-" + id).classList.remove("active");
+    promptInput.addEventListener("input", () => {
+      if (promptInput.value.trim()) {
+        syncLanguageUI(detectScript(promptInput.value));
+      }
+    });
+
+    langSelect.addEventListener("change", () => syncLanguageUI(langSelect.value));
+    pills.forEach(p => p.addEventListener("click", () => syncLanguageUI(p.dataset.lang)));
+
+    document.getElementById("sampleBtn").addEventListener("click", () => {
+      const lang = langSelect.value;
+      promptInput.value = SAMPLES[lang] || SAMPLES.Bengali;
+      runOptimization();
+    });
+
+    // Tab switching
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
       });
-      document.getElementById(tabId).classList.remove("hidden");
-      document.getElementById("btn-" + tabId).classList.add("active");
-    }
+    });
 
-    function escapeHtml(str) {
-      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
+    async function runOptimization() {
+      const text = promptInput.value.trim();
+      if (!text) return;
 
-    function copyShareLink() {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Live TokenSathi URL copied! Share it with judges or open on your phone.");
-    }
+      const res = await fetch("/optimize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: text })
+      });
+      const data = await res.json();
 
-    function copyOptimizedPrompt() {
-      const txt = document.getElementById("optAfterText").innerText;
-      if (txt) {
-        navigator.clipboard.writeText(txt);
-        alert("Optimized prompt copied!");
+      // Update Tab 1
+      document.getElementById("scanLang").textContent = data.language;
+      document.getElementById("scanOrig").textContent = data.original_tokens;
+      document.getElementById("scanOpt").textContent = data.optimized_tokens;
+      document.getElementById("scanSaved").textContent = `${data.saved_percentage}% (${data.saved_tokens} saved)`;
+
+      // Update Tab 2
+      document.getElementById("compressedOutput").textContent = data.compressed_prompt;
+      const badge = document.getElementById("meaningBadge");
+      badge.textContent = data.meaning_preserved;
+      badge.className = data.meaning_preserved === "PASS" ? "status-pass" : "status-warn";
+
+      // Update Tab 3
+      const entityContainer = document.getElementById("entityList");
+      if (data.entities_protected && data.entities_protected.length > 0) {
+        entityContainer.innerHTML = data.entities_protected
+          .map(e => `${e}</span>`)
+          .join("");
+      } else {
+        entityContainer.textContent = "None in prompt";
       }
+      document.getElementById("pivotOutput").textContent = data.english_pivot;
     }
 
-    function updateSliderROI() {
-      const daily = parseInt(document.getElementById("dailySlider").value, 10);
-      document.getElementById("sliderLabel").innerText = daily.toLocaleString("en-IN");
-      const savedTokensPerReq = Math.max(1, lastLegacyTokens - lastOptTokens);
-      const monthlySaved = ((savedTokensPerReq * daily * 30) / 1_000_000) * 210;
-      const annualSaved = monthlySaved * 12;
+    document.getElementById("runBtn").addEventListener("click", runOptimization);
 
-      document.getElementById("monthlySaved").innerText = "₹" + Math.round(monthlySaved).toLocaleString("en-IN");
-      document.getElementById("annualSaved").innerText = "₹" + Math.round(annualSaved).toLocaleString("en-IN") + " / yr";
-    }
-
-    function loadPreset(lang) {
-      document.getElementById("language").value = lang;
-      document.getElementById("promptInput").value = PRESETS[lang];
-      runAnalyze();
-    }
-
-    function loadBloatedSample() {
-      document.getElementById("language").value = "English";
-      document.getElementById("promptInput").value =
-        "I would really appreciate it if you could please explain the concept of machine learning to me in a detailed manner and also give me some examples that would help me understand it better.";
-      switchTab("tab-optimizer");
-      runOptimizePrompt();
-    }
-
-    async function runAnalyze() {
-      const text = document.getElementById("promptInput").value;
-      const language = document.getElementById("language").value;
-      const daily_requests = document.getElementById("dailySlider").value || 10000;
-
-      try {
-        const res = await fetch("/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, language, daily_requests })
-        });
-        const data = await res.json();
-        if (data.error) return alert(data.error);
-
-        lastLegacyTokens = data.tokens;
-        lastOptTokens = data.optimized_tokens;
-        updateSliderROI();
-
-        document.getElementById("routerRoute").innerText = "ROUTER: " + data.router_decision.route;
-        document.getElementById("routerConf").innerText = "Confidence: " + data.router_decision.confidence;
-        document.getElementById("routerReason").innerText = data.router_decision.reason;
-        document.getElementById("riskContainer").innerHTML = (data.router_decision.risks || [])
-          .map(r => `<span class="risk-tag">⚠ ${escapeHtml(r)}</span>`).join("");
-
-        document.getElementById("taxMultiplier").innerText = data.tax_multiplier + "x";
-        document.getElementById("tokenCountCompare").innerText = `${data.tokens} → ${data.optimized_tokens}`;
-        document.getElementById("savingsPct").innerText = data.savings_percent + "%";
-
-        const rows = data.scanner_5lang || [];
-        const maxTokens = Math.max(1, ...rows.map(r => r.tokens));
-        document.getElementById("scannerTableBody").innerHTML = rows.map(row => {
-          const pctWidth = Math.round((row.tokens / maxTokens) * 100);
-          const isEn = row.language === "English";
-          const barColor = isEn ? "var(--green)" : (row.multiplier >= 3.0 ? "var(--red)" : "var(--amber)");
-          const diffLabel = isEn ? "Baseline (0%)" : `+${row.diff_from_english_pct}% (${row.multiplier}x)`;
-          return `
-            <tr>
-              <td><strong>${FLAGS[row.language] || row.language}</strong></td>
-              <td><strong>${row.tokens}</strong></td>
-              <td style="color: ${barColor}; font-weight: 600;">${diffLabel}</td>
-              <td><div class="bar-wrap"><div class="bar-fill" style="width: ${pctWidth}%; background: ${barColor};"></div></div></td>
-            </tr>
-          `;
-        }).join("");
-
-        document.getElementById("legacyTokensBox").innerHTML = data.token_pieces
-          .map(p => `<span class="chip chip-bad">${escapeHtml(p)}</span>`).join("");
-        document.getElementById("optTokensBox").innerHTML = data.optimized_token_pieces
-          .map(p => `<span class="chip chip-good">${escapeHtml(p)}</span>`).join("");
-      } catch (err) {
-        console.error("Analyze failed:", err);
-      }
-    }
-
-    async function runOptimizePrompt() {
-      const text = document.getElementById("promptInput").value;
-      const language = document.getElementById("language").value;
-
-      try {
-        const res = await fetch("/optimize_prompt", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, language })
-        });
-        const data = await res.json();
-        if (data.error) return alert(data.error);
-
-        document.getElementById("optBeforeTokens").innerText = data.before_tokens;
-        document.getElementById("optBeforeText").innerText = data.original_prompt;
-        document.getElementById("optAfterTokens").innerText = data.after_tokens;
-        document.getElementById("optReductionPct").innerText = data.reduction_pct + "%";
-        document.getElementById("optAfterText").innerText = data.optimized_prompt;
-        document.getElementById("meaningPass").innerText = data.meaning_preserved;
-      } catch (err) {
-        console.error("Optimize prompt failed:", err);
-      }
-    }
-
-    async function runRace() {
-      const text = document.getElementById("promptInput").value;
-      const language = document.getElementById("language").value;
-      const hybrid_mode = document.getElementById("hybridMode").checked;
-
-      await runAnalyze();
-      const routeBadge = document.getElementById("raceRouteBadge");
-      routeBadge.innerText = "Running Pipeline...";
-
-      try {
-        const res = await fetch("/race", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, language, hybrid_mode })
-        });
-        const data = await res.json();
-        if (data.error) return alert(data.error);
-
-        routeBadge.innerText = data.route_used;
-        document.getElementById("nativeTokens").innerText = data.native.tokens;
-        document.getElementById("nativeLatency").innerText = data.native.latency_ms + " ms";
-        document.getElementById("nativeCost").innerText = "₹" + data.native.cost_inr;
-        document.getElementById("nativeReply").innerText = data.final_reply;
-
-        document.getElementById("smartTokens").innerText = data.tokensathi.tokens;
-        document.getElementById("raceReduction").innerText = data.tokensathi.token_reduction_pct + "%";
-        document.getElementById("smartLatency").innerText = data.tokensathi.latency_ms + " ms";
-        document.getElementById("qualityScore").innerText = data.tokensathi.quality_score + "%";
-        document.getElementById("englishPivot").innerText = data.english_intermediate;
-        document.getElementById("smartReply").innerText = data.final_reply;
-      } catch (err) {
-        routeBadge.innerText = "Error running pipeline";
-      }
-    }
-
-    async function runBatchBenchmark() {
-      const langs = ["Kannada", "Hindi", "Telugu", "Bengali"];
-      let totalSavedPct = 0;
-      let totalQuality = 0;
-
-      document.getElementById("batchScorecard").classList.remove("hidden");
-      document.getElementById("batchMetrics").innerHTML = `<div class="stat"><div class="stat-label">Status</div><div class="stat-val">Testing 4 Languages...</div></div>`;
-
-      for (const lang of langs) {
-        const res = await fetch("/race", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: PRESETS[lang], language: lang, hybrid_mode: true })
-        });
-        const d = await res.json();
-        totalSavedPct += d.tokensathi.token_reduction_pct;
-        totalQuality += d.tokensathi.quality_score;
-      }
-
-      const avgSaved = (totalSavedPct / langs.length).toFixed(1);
-      const avgQual = (totalQuality / langs.length).toFixed(1);
-
-      document.getElementById("batchMetrics").innerHTML = `
-        <div class="stat"><div class="stat-label">Languages Benchmarked</div><div class="stat-val">4 Scripts</div></div>
-        <div class="stat"><div class="stat-label">Avg Token Reduction</div><div class="stat-val green">${avgSaved}%</div></div>
-        <div class="stat"><div class="stat-label">Avg Semantic Quality</div><div class="stat-val green">${avgQual}%</div></div>
-        <div class="stat"><div class="stat-label">Cache Entries Active</div><div class="stat-val" style="color:var(--accent)">4 Ready</div></div>
-      `;
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      runAnalyze();
-      runOptimizePrompt();
+    document.getElementById("copyBtn").addEventListener("click", () => {
+      const out = document.getElementById("compressedOutput").textContent;
+      navigator.clipboard.writeText(out);
+      const btn = document.getElementById("copyBtn");
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = "Copy Output"), 1500);
     });
   </script>
 </body>
