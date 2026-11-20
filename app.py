@@ -7,13 +7,15 @@ import os
 import re
 from difflib import SequenceMatcher
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=".", static_folder=".", static_url_path="")
+
 
 # Tokenizers: Legacy high-Indic-tax vs. Modern multilingual tokenizer
 legacy_encoding = tiktoken.get_encoding("cl100k_base")
 optimized_encoding = tiktoken.get_encoding("o200k_base")
 
-DATASET_PATH = os.path.join("datasets", "samples.json")
+DATASET_PATH = "samples.json"
+
 
 # Reads GEMINI_API_KEY safely from environment variables (set in Render or terminal)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
