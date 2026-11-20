@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <meta name="theme-color" content="#0b0f19" />
+  <meta name="theme-color" content="#070b14" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="TokenSathi" />
   <title>TokenSathi ⚡ — Eliminate the Indic Token Tax</title>
-  <link id="pwa-manifest" rel="manifest" />
   <style>
     :root {
       --bg: #070b14;
-      --card: rgba(19, 26, 42, 0.85);
-      --border: rgba(56, 189, 248, 0.2);
+      --card: rgba(19, 26, 42, 0.88);
+      --border: rgba(56, 189, 248, 0.22);
       --text: #f8fafc;
       --muted: #94a3b8;
       --accent: #38bdf8;
@@ -37,18 +36,16 @@
     .header-actions { display: flex; gap: 8px; align-items: center; }
     .badge { background: rgba(56, 189, 248, 0.12); color: var(--accent); border: 1px solid var(--accent); padding: 5px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
 
-    /* Navigation Tabs */
     .tabs { display: flex; gap: 8px; margin-bottom: 18px; overflow-x: auto; padding-bottom: 4px; }
     .tab-btn {
-      background: rgba(15, 23, 42, 0.8); color: var(--muted); border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.85); color: var(--muted); border: 1px solid var(--border);
       padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s;
     }
     .tab-btn.active { background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(168, 85, 247, 0.22)); color: #fff; border-color: var(--accent); }
 
     .card {
-      background: var(--card); backdrop-filter: blur(12px);
-      border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 18px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 18px; margin-bottom: 18px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
     }
     .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
     select, textarea {
@@ -64,7 +61,6 @@
     .btn-race { background: var(--green); color: #031910; }
     .btn-sample { background: #1e293b; color: var(--text); border: 1px solid #334155; font-size: 0.8rem; padding: 6px 10px; }
 
-    /* Interactive ROI Slider */
     .roi-bar {
       background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3);
       border-radius: 10px; padding: 12px 16px; margin-bottom: 18px;
@@ -111,7 +107,6 @@
       </div>
     </header>
 
-    <!-- Shared Input Cockpit -->
     <div class="card">
       <div class="controls">
         <select id="language">
@@ -138,14 +133,12 @@
       </div>
     </div>
 
-    <!-- 3 Clean Interactive Tabs -->
     <div class="tabs">
       <button id="btn-tab-scanner" class="tab-btn active" onclick="switchTab('tab-scanner')">1. 🌍 Token Tax Scanner & X-Ray</button>
       <button id="btn-tab-optimizer" class="tab-btn" onclick="switchTab('tab-optimizer')">2. ✨ AI Prompt Optimizer</button>
       <button id="btn-tab-router" class="tab-btn" onclick="switchTab('tab-router')">3. ⚡ Smart Router & 4-Lang Benchmark</button>
     </div>
 
-    <!-- TAB 1: 5-Language Scanner + Token X-Ray + Live ROI Slider -->
     <div id="tab-scanner">
       <div class="roi-bar">
         <div>
@@ -169,3 +162,315 @@
         <h3 style="margin-bottom: 8px; font-size: 1.05rem;">🌍 5-Language Token Tax Comparison (Same Meaning)</h3>
         <table>
           <thead>
+            <tr><th>Language</th><th>Tokens</th><th>Difference vs English</th><th style="width: 38%;">Visual Tax Bar</th></tr>
+          </thead>
+          <tbody id="scannerTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom: 10px; font-size: 1.05rem;">🔬 Token X-Ray Heatmap (Fragmentation Inspector)</h3>
+        <div class="two-col">
+          <div>
+            <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 6px;">Standard Tokenizer (Broken Byte Fragments)</p>
+            <div class="box-dark" id="legacyTokensBox"></div>
+          </div>
+          <div>
+            <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 6px;">Cleaned + Multilingual Tokenizer</p>
+            <div class="box-dark" id="optTokensBox"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-optimizer" class="hidden">
+      <div class="card" style="border-color: var(--purple);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <h3 style="color: #d8b4fe;">✨ TokenSathi Prompt Optimizer — Before vs. After</h3>
+          <span class="badge" style="border-color: var(--green); color: var(--green);">Meaning Preserved: <span id="meaningPass">PASS</span></span>
+        </div>
+
+        <div class="two-col" style="margin-top: 14px;">
+          <div class="box-dark">
+            <div class="stat-label">Original Prompt (<span id="optBeforeTokens" class="red">0</span> Tokens)</div>
+            <p id="optBeforeText" style="margin-top: 8px; color: var(--muted);"></p>
+          </div>
+          <div class="box-dark" style="border-color: var(--green);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="stat-label">Optimized (<span id="optAfterTokens" class="green">0</span> Tokens • <span id="optReductionPct" class="green">0%</span> Saved)</div>
+              <button class="btn-sample" onclick="copyOptimizedPrompt()">📋 Copy</button>
+            </div>
+            <p id="optAfterText" style="margin-top: 8px; font-weight: 600;"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-router" class="hidden">
+      <div class="router-box">
+        <div class="router-title">
+          <span id="routerRoute">SMART ROUTER DECISION</span>
+          <span id="routerConf"></span>
+        </div>
+        <div id="routerReason" style="font-size: 0.9rem; margin-top: 4px;"></div>
+        <div id="riskContainer"></div>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <h3 style="font-size: 1.1rem;">⚡ Live Pipeline Race: Native Script vs. TokenSathi Router</h3>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <label style="font-size: 0.85rem; color: var(--muted);"><input type="checkbox" id="hybridMode" checked /> Entity Shield</label>
+            <button class="btn-sample" onclick="runBatchBenchmark()">📊 Run 4-Language Scorecard</button>
+            <span class="badge" id="raceRouteBadge">Ready</span>
+          </div>
+        </div>
+
+        <div class="two-col" style="margin-top: 14px;">
+          <div class="box-dark">
+            <h4 class="red">❌ Standard Native Pipeline</h4>
+            <p style="font-size: 0.85rem; color: var(--muted); margin-top: 6px;">
+              Tokens: <strong id="nativeTokens">0</strong> | Latency: <strong id="nativeLatency">0 ms</strong> | Cost: <strong id="nativeCost">₹0</strong>
+            </p>
+            <div class="reply-bubble" id="nativeReply"></div>
+          </div>
+
+          <div class="box-dark" style="border-color: var(--green);">
+            <h4 class="green">✅ TokenSathi Smart Pipeline</h4>
+            <p style="font-size: 0.85rem; color: var(--muted); margin-top: 6px;">
+              Tokens: <strong class="green" id="smartTokens">0</strong> (<span id="raceReduction">0%</span> saved) | Latency: <strong id="smartLatency">0 ms</strong> | Quality: <strong class="green" id="qualityScore">0%</strong>
+            </p>
+            <p style="font-size: 0.8rem; color: var(--accent); margin-top: 6px;"><strong>English Pivot:</strong> <span id="englishPivot"></span></p>
+            <div class="reply-bubble" id="smartReply"></div>
+          </div>
+        </div>
+
+        <div id="batchScorecard" class="hidden" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #1e293b;">
+          <h4 style="color: var(--accent); margin-bottom: 8px;">📊 Judge Benchmark Scorecard (Kannada, Hindi, Telugu & Bengali)</h4>
+          <div class="grid-4" id="batchMetrics"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PRESETS = {
+      Kannada: "ನನ್ನ ಆರ್ಡರ್ #4821 ಎಲ್ಲಿದೆ ಮತ್ತು ನನ್ನ EMI ಪಾವತಿ ವಿವರಗಳನ್ನು ತಿಳಿಸಿ?",
+      Hindi: "मेरा ऑर्डर #4821 कहाँ है और मेरी EMI भुगतान का विवरण क्या है?",
+      Telugu: "నా ఆర్డర్ #4821 ఎక్కడ ఉంది మరియు నా EMI చెల్లింపు వివరాలు ఏమిటి?",
+      Bengali: "আমার অর্ডার #4821 কোথায় এবং আমার EMI পেমেন্টের বিবরণ কী?",
+      English: "Where is my order #4821 and what are my EMI payment details?"
+    };
+
+    const FLAGS = {
+      English: "🇬🇧 English",
+      Kannada: "🇮🇳 Kannada",
+      Hindi: "🇮🇳 Hindi",
+      Telugu: "🇮🇳 Telugu",
+      Bengali: "🇮🇳 Bengali"
+    };
+
+    let lastLegacyTokens = 60;
+    let lastOptTokens = 23;
+
+    function switchTab(tabId) {
+      ["tab-scanner", "tab-optimizer", "tab-router"].forEach(id => {
+        document.getElementById(id).classList.add("hidden");
+        document.getElementById("btn-" + id).classList.remove("active");
+      });
+      document.getElementById(tabId).classList.remove("hidden");
+      document.getElementById("btn-" + tabId).classList.add("active");
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function copyShareLink() {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Live TokenSathi URL copied! Share it with judges or open on your phone.");
+    }
+
+    function copyOptimizedPrompt() {
+      const txt = document.getElementById("optAfterText").innerText;
+      if (txt) {
+        navigator.clipboard.writeText(txt);
+        alert("Optimized prompt copied!");
+      }
+    }
+
+    function updateSliderROI() {
+      const daily = parseInt(document.getElementById("dailySlider").value, 10);
+      document.getElementById("sliderLabel").innerText = daily.toLocaleString("en-IN");
+      const savedTokensPerReq = Math.max(1, lastLegacyTokens - lastOptTokens);
+      const monthlySaved = ((savedTokensPerReq * daily * 30) / 1_000_000) * 210;
+      const annualSaved = monthlySaved * 12;
+
+      document.getElementById("monthlySaved").innerText = "₹" + Math.round(monthlySaved).toLocaleString("en-IN");
+      document.getElementById("annualSaved").innerText = "₹" + Math.round(annualSaved).toLocaleString("en-IN") + " / yr";
+    }
+
+    function loadPreset(lang) {
+      document.getElementById("language").value = lang;
+      document.getElementById("promptInput").value = PRESETS[lang];
+      runAnalyze();
+    }
+
+    function loadBloatedSample() {
+      document.getElementById("language").value = "English";
+      document.getElementById("promptInput").value =
+        "I would really appreciate it if you could please explain the concept of machine learning to me in a detailed manner and also give me some examples that would help me understand it better.";
+      switchTab("tab-optimizer");
+      runOptimizePrompt();
+    }
+
+    async function runAnalyze() {
+      const text = document.getElementById("promptInput").value;
+      const language = document.getElementById("language").value;
+      const daily_requests = document.getElementById("dailySlider").value || 10000;
+
+      try {
+        const res = await fetch("/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, language, daily_requests })
+        });
+        const data = await res.json();
+        if (data.error) return alert(data.error);
+
+        lastLegacyTokens = data.tokens;
+        lastOptTokens = data.optimized_tokens;
+        updateSliderROI();
+
+        document.getElementById("routerRoute").innerText = "ROUTER: " + data.router_decision.route;
+        document.getElementById("routerConf").innerText = "Confidence: " + data.router_decision.confidence;
+        document.getElementById("routerReason").innerText = data.router_decision.reason;
+        document.getElementById("riskContainer").innerHTML = (data.router_decision.risks || [])
+          .map(r => `<span class="risk-tag">⚠ ${escapeHtml(r)}</span>`).join("");
+
+        document.getElementById("taxMultiplier").innerText = data.tax_multiplier + "x";
+        document.getElementById("tokenCountCompare").innerText = `${data.tokens} → ${data.optimized_tokens}`;
+        document.getElementById("savingsPct").innerText = data.savings_percent + "%";
+
+        const rows = data.scanner_5lang || [];
+        const maxTokens = Math.max(1, ...rows.map(r => r.tokens));
+        document.getElementById("scannerTableBody").innerHTML = rows.map(row => {
+          const pctWidth = Math.round((row.tokens / maxTokens) * 100);
+          const isEn = row.language === "English";
+          const barColor = isEn ? "var(--green)" : (row.multiplier >= 3.0 ? "var(--red)" : "var(--amber)");
+          const diffLabel = isEn ? "Baseline (0%)" : `+${row.diff_from_english_pct}% (${row.multiplier}x)`;
+          return `
+            <tr>
+              <td><strong>${FLAGS[row.language] || row.language}</strong></td>
+              <td><strong>${row.tokens}</strong></td>
+              <td style="color: ${barColor}; font-weight: 600;">${diffLabel}</td>
+              <td><div class="bar-wrap"><div class="bar-fill" style="width: ${pctWidth}%; background: ${barColor};"></div></div></td>
+            </tr>
+          `;
+        }).join("");
+
+        document.getElementById("legacyTokensBox").innerHTML = data.token_pieces
+          .map(p => `<span class="chip chip-bad">${escapeHtml(p)}</span>`).join("");
+        document.getElementById("optTokensBox").innerHTML = data.optimized_token_pieces
+          .map(p => `<span class="chip chip-good">${escapeHtml(p)}</span>`).join("");
+      } catch (err) {
+        console.error("Analyze failed:", err);
+      }
+    }
+
+    async function runOptimizePrompt() {
+      const text = document.getElementById("promptInput").value;
+      const language = document.getElementById("language").value;
+
+      try {
+        const res = await fetch("/optimize_prompt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, language })
+        });
+        const data = await res.json();
+        if (data.error) return alert(data.error);
+
+        document.getElementById("optBeforeTokens").innerText = data.before_tokens;
+        document.getElementById("optBeforeText").innerText = data.original_prompt;
+        document.getElementById("optAfterTokens").innerText = data.after_tokens;
+        document.getElementById("optReductionPct").innerText = data.reduction_pct + "%";
+        document.getElementById("optAfterText").innerText = data.optimized_prompt;
+        document.getElementById("meaningPass").innerText = data.meaning_preserved;
+      } catch (err) {
+        console.error("Optimize prompt failed:", err);
+      }
+    }
+
+    async function runRace() {
+      const text = document.getElementById("promptInput").value;
+      const language = document.getElementById("language").value;
+      const hybrid_mode = document.getElementById("hybridMode").checked;
+
+      await runAnalyze();
+      const routeBadge = document.getElementById("raceRouteBadge");
+      routeBadge.innerText = "Running Pipeline...";
+
+      try {
+        const res = await fetch("/race", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, language, hybrid_mode })
+        });
+        const data = await res.json();
+        if (data.error) return alert(data.error);
+
+        routeBadge.innerText = data.route_used;
+        document.getElementById("nativeTokens").innerText = data.native.tokens;
+        document.getElementById("nativeLatency").innerText = data.native.latency_ms + " ms";
+        document.getElementById("nativeCost").innerText = "₹" + data.native.cost_inr;
+        document.getElementById("nativeReply").innerText = data.final_reply;
+
+        document.getElementById("smartTokens").innerText = data.tokensathi.tokens;
+        document.getElementById("raceReduction").innerText = data.tokensathi.token_reduction_pct + "%";
+        document.getElementById("smartLatency").innerText = data.tokensathi.latency_ms + " ms";
+        document.getElementById("qualityScore").innerText = data.tokensathi.quality_score + "%";
+        document.getElementById("englishPivot").innerText = data.english_intermediate;
+        document.getElementById("smartReply").innerText = data.final_reply;
+      } catch (err) {
+        routeBadge.innerText = "Error running pipeline";
+      }
+    }
+
+    async function runBatchBenchmark() {
+      const langs = ["Kannada", "Hindi", "Telugu", "Bengali"];
+      let totalSavedPct = 0;
+      let totalQuality = 0;
+
+      document.getElementById("batchScorecard").classList.remove("hidden");
+      document.getElementById("batchMetrics").innerHTML = `<div class="stat"><div class="stat-label">Status</div><div class="stat-val">Testing 4 Languages...</div></div>`;
+
+      for (const lang of langs) {
+        const res = await fetch("/race", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: PRESETS[lang], language: lang, hybrid_mode: true })
+        });
+        const d = await res.json();
+        totalSavedPct += d.tokensathi.token_reduction_pct;
+        totalQuality += d.tokensathi.quality_score;
+      }
+
+      const avgSaved = (totalSavedPct / langs.length).toFixed(1);
+      const avgQual = (totalQuality / langs.length).toFixed(1);
+
+      document.getElementById("batchMetrics").innerHTML = `
+        <div class="stat"><div class="stat-label">Languages Benchmarked</div><div class="stat-val">4 Scripts</div></div>
+        <div class="stat"><div class="stat-label">Avg Token Reduction</div><div class="stat-val green">${avgSaved}%</div></div>
+        <div class="stat"><div class="stat-label">Avg Semantic Quality</div><div class="stat-val green">${avgQual}%</div></div>
+        <div class="stat"><div class="stat-label">Cache Entries Active</div><div class="stat-val" style="color:var(--accent)">4 Ready</div></div>
+      `;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      runAnalyze();
+      runOptimizePrompt();
+    });
+  </script>
+</body>
+</html>
