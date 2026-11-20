@@ -219,7 +219,7 @@
           <div class="metric green">
             <small>⚡ TokenSathi Rule Pipeline (1ms)</small>
             <h2 id="raceAfter">0 tokens</h2>
-           <p id="raceSub">Phonetic ASCII Packed • Output Guarded • ₹0 Cost</p> 
+            <p id="raceSub">Phonetic ASCII Packed • Output Guarded • ₹0 Cost</p>
           </div>
         </div>
       </div>
@@ -253,7 +253,6 @@
       "చాలా", "కొంచెం", "ఒక", "మరియు"
     ]);
 
-    // Deterministic Unicode-to-ASCII Phonetic Grapheme Map (Zero AI / 1-Byte Packing)
     const PHONETIC_MAP = {
       'অ':'a','আ':'aa','ই':'i','ঈ':'ee','উ':'u','ঊ':'oo','এ':'e','ঐ':'ai','ও':'o','ঔ':'au',
       'ক':'k','খ':'kh','গ':'g','ঘ':'gh','চ':'ch','ছ':'chh','জ':'j','ঝ':'jh','ট':'t','ঠ':'th','ড':'d','ঢ':'dh','ণ':'n',
@@ -264,10 +263,10 @@
       'ಕ':'k','ಖ':'kh','ಗ':'g','ಘ':'gh','ಚ':'ch','ಛ':'chh','ಜ':'j','ಝ':'jh','ಟ':'t','ಠ':'th','ಡ':'d','ಢ':'dh','ಣ':'n',
       'ತ':'t','ಥ':'th','ದ':'d','ಧ':'dh','ನ':'n','ಪ':'p','ಫ':'ph','ಬ':'b','ಭ':'bh','ಮ':'m','ಯ':'y','ರ':'r','ಲ':'l','ವ':'v','ಶ':'sh','ಷ':'sh','ಸ':'s','ಹ':'h','ಳ':'l',
       'ಾ':'a','ಿ':'i','ೀ':'ee','ು':'u','ೂ':'oo','ೆ':'e','ೇ':'e','ೈ':'ai','ೊ':'o','ೋ':'o','ೌ':'au','್':'','ಂ':'m',
-      'अ':'a','आ':'aa','इ':'i','ई':'ee','उ':'u','ऊ':'oo','ए':'e','ऐ':'ai','ओ':'o','औ':'au',
+      'अ':'a','आ':'aa','इ':'i','ई':'ee','उ':'u','ऊ':'oo','ए':'e','ऐ':'ai','ओ':'o','औ':'au','ऑ':'o',
       'क':'k','ख':'kh','ग':'g','घ':'gh','च':'ch','छ':'chh','ज':'j','झ':'jh','ट':'t','ठ':'th','ड':'d','ढ':'dh','ण':'n',
       'त':'t','थ':'th','द':'d','ध':'dh','न':'n','प':'p','फ':'ph','ब':'b','भ':'bh','म':'m','य':'y','र':'r','ल':'l','व':'v','श':'sh','ष':'sh','स':'s','ह':'h',
-      'ा':'a','ि':'i','ी':'ee','ु':'u','ू':'oo','े':'e','ै':'ai','ो':'o','ौ':'au','ॉ':'o','ऑ':'o','्':'','ं':'n','़':'',
+      'ा':'a','ि':'i','ी':'ee','ु':'u','ू':'oo','े':'e','ै':'ai','ो':'o','ौ':'au','ॉ':'o','्':'','ं':'n','़':'',
       'అ':'a','ఆ':'aa','ఇ':'i','ఈ':'ee','ఉ':'u','ఊ':'oo','ఎ':'e','ఏ':'e','ఐ':'ai','ఒ':'o','ఓ':'o','ఔ':'au',
       'క':'k','ఖ':'kh','గ':'g','ఘ':'gh','చ':'ch','ఛ':'chh','జ':'j','ఝ':'jh','ట':'t','ఠ':'th','డ':'d','ఢ':'dh','ణ':'n',
       'త':'t','థ':'th','ద':'d','ధ':'dh','న':'n','ప':'p','ఫ':'ph','బ':'b','భ':'bh','మ':'m','య':'y','ర':'r','ల':'l','వ':'v','శ':'sh','ష':'sh','స':'s','హ':'h','ళ':'l',
@@ -292,9 +291,14 @@
       return Math.max(1, Math.ceil(bytes / 3.1));
     }
 
+    function setTxt(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    }
+
     function analyze(raw) {
       const lang = detectLang(raw);
-      const orig = countUnitsCompat(raw);
+      const orig = countTokens(raw);
       const entities = raw.match(/[\d০-৯೦-೯௧-௯]+(?:\s*(?:দিন|days?|hrs?|%|₹|\$|EMI|টাকা|ರೂ|ದಿನ|दिन|రోజుల))?|#[A-Za-z0-9]+/gi) || [];
 
       let cleaned = raw.trim();
@@ -309,11 +313,13 @@
       let compressed = keptWords.join(" ").replace(/\s+([,.!?।])/g, "$1").trim();
       if (compressed.length < 4) compressed = raw.trim();
 
-      const usePhonetic = document.getElementById("phoneticToggle").checked && lang !== "English";
-      const useGuard = document.getElementById("outputGuardToggle").checked;
+      const pToggle = document.getElementById("phoneticToggle");
+      const gToggle = document.getElementById("outputGuardToggle");
+      const usePhonetic = pToggle ? (pToggle.checked && lang !== "English") : false;
+      const useGuard = gToggle ? gToggle.checked : false;
 
       if (usePhonetic) compressed = packPhoneticASCII(compressed);
-      const opt = countUnitsCompat(compressed);
+      const opt = countTokens(compressed);
       const saved = Math.max(0, orig - opt);
       const pct = orig > 0 ? Math.round((saved / orig) * 100) : 0;
       const mult = (orig / Math.max(1, Math.ceil(raw.length / 4.2))).toFixed(1) + "x";
@@ -328,74 +334,69 @@
       return { lang, orig, opt, saved, pct, finalPayload, entities, mult, rawWords, keptWords, fertBefore, fertAfter, ctxFreed, usePhonetic, useGuard };
     }
 
-    function countUnitsCompat(t) { return countTokens(t); }
-
     function render() {
-      const text = document.getElementById("promptInput").value;
-      if (!text.trim()) return;
-      const r = analyze(text);
+      const inp = document.getElementById("promptInput");
+      if (!inp || !inp.value.trim()) return;
+      const r = analyze(inp.value);
 
-      document.getElementById("langSelect").value = r.lang;
-      document.getElementById("taxMult").textContent = r.mult;
-      document.getElementById("tokenDiff").textContent = `${r.orig} → ${r.opt}`;
-      document.getElementById("taxSaved").textContent = `${r.pct}%`;
-      document.getElementById("fertilityScore").textContent = `${r.fertBefore} → ${r.fertAfter}`;
-      document.getElementById("qualityScore").textContent = "100%";
-      document.getElementById("qualitySub").textContent = `0% meaning lost • ${r.entities.length} entities shielded`;
-      document.getElementById("contextGain").textContent = `+${r.ctxFreed}%`;
-      document.getElementById("contextSub").textContent = `${r.saved} extra tokens available`;
+      const sel = document.getElementById("langSelect");
+      if (sel) sel.value = r.lang;
+
+      setTxt("taxMult", r.mult);
+      setTxt("tokenDiff", `${r.orig} → ${r.opt}`);
+      setTxt("taxSaved", `${r.pct}%`);
+      setTxt("fertilityScore", `${r.fertBefore} → ${r.fertAfter}`);
+      setTxt("qualityScore", "100%");
+      setTxt("qualitySub", `0% meaning lost • ${r.entities.length} entities shielded`);
+      setTxt("contextGain", `+${r.ctxFreed}%`);
+      setTxt("contextSub", `${r.saved} extra tokens available`);
 
       const keptSet = new Set(r.keptWords);
-      document.getElementById("legacyPieces").innerHTML = r.rawWords
-        .map(w => `<span class="chip ${keptSet.has(w) ? '' : 'removed'}">${w}</span>`).join("");
-      document.getElementById("optPieces").innerHTML = r.keptWords
-        .map(w => `<span class="chip kept">${r.usePhonetic ? packPhoneticASCII(w) : w}</span>`).join("");
+      const legEl = document.getElementById("legacyPieces");
+      const optEl = document.getElementById("optPieces");
+      if (legEl) legEl.innerHTML = r.rawWords.map(w => `<span class="chip ${keptSet.has(w) ? '' : 'removed'}">${w}</span>`).join("");
+      if (optEl) optEl.innerHTML = r.keptWords.map(w => `<span class="chip kept">${r.usePhonetic ? packPhoneticASCII(w) : w}</span>`).join("");
 
-      document.getElementById("scriptTable").innerHTML = ["bengali", "kannada", "hindi", "telugu", "english"].map(k => {
-        const s = analyze(PRESETS[k]);
-        return `<tr><td><strong>${s.lang}</strong></td><td>${s.orig}</td><td>${s.opt}</td><td style="color:#059669;font-weight:700;">-${s.pct}%</td></tr>`;
-      }).join("");
+      const tbl = document.getElementById("scriptTable");
+      if (tbl) {
+        tbl.innerHTML = ["bengali", "kannada", "hindi", "telugu", "english"].map(k => {
+          const s = analyze(PRESETS[k]);
+          return `<tr><td><strong>${s.lang}</strong></td><td>${s.orig}</td><td>${s.opt}</td><td style="color:#059669;font-weight:700;">-${s.pct}%</td></tr>`;
+        }).join("");
+      }
 
-      const reqs = Number(document.getElementById("reqSlider").value);
-      document.getElementById("reqLabel").textContent = `${reqs.toLocaleString("en-IN")} reqs/day`;
+      const slider = document.getElementById("reqSlider");
+      const reqs = slider ? Number(slider.value) : 10000;
+      setTxt("reqLabel", `${reqs.toLocaleString("en-IN")} reqs/day`);
       const monthly = Math.round(r.saved * 0.00025 * reqs * 30 * 84);
-      document.getElementById("monthlySaved").textContent = `₹${monthly.toLocaleString("en-IN")}`;
-      document.getElementById("annualSaved").textContent = `₹${(monthly * 12).toLocaleString("en-IN")} / yr`;
+      setTxt("monthlySaved", `₹${monthly.toLocaleString("en-IN")}`);
+      setTxt("annualSaved", `₹${(monthly * 12).toLocaleString("en-IN")} / yr`);
 
-      document.getElementById("optBadge").textContent = `${r.saved} tokens saved (-${r.pct}%)`;
-      document.getElementById("compressedOutput").textContent = r.finalPayload;
-      document.getElementById("meaningStatus").textContent =
-        `Meaning Preserved: PASS • Entities Shielded: [${r.entities.join(", ") || "None"}] • Overhead Cost: 0.000 tokens (₹0)`;
-      document.getElementById("routerSummary").textContent =
-        `Script: ${r.lang} | Phonetic ASCII: ${r.usePhonetic ? "ON" : "OFF"} | Output Guard: ${r.useGuard ? "ON" : "OFF"} | Cost: ₹0`;
-      document.getElementById("raceBefore").textContent = `${r.orig} tokens`;
-      document.getElementById("raceAfter").textContent = `${r.opt} tokens (-${r.pct}%)`;
-          document.getElementById("raceAfter").textContent = `${r.opt} tokens (-${r.pct}%)`;
-      document.getElementById("beforeSub").textContent = r.lang === "English"
-        ? "Uncompressed conversational filler • 1-byte ASCII"
-        : "Uncompressed UTF-8 Indic payload • 3-byte character overhead";
-      document.getElementById("raceSub").textContent =
-        `${r.usePhonetic ? "Phonetic ASCII Packed" : "Native Script Pruned"} • ${r.useGuard ? "Output Guarded" : "Standard Output"} • ₹0 Cost`;
+      setTxt("optBadge", `${r.saved} tokens saved (-${r.pct}%)`);
+      setTxt("compressedOutput", r.finalPayload);
+      setTxt("meaningStatus", `Meaning Preserved: PASS • Entities Shielded: [${r.entities.join(", ") || "None"}] • Overhead Cost: 0.000 tokens (₹0)`);
+      setTxt("routerSummary", `Script: ${r.lang} | Phonetic ASCII: ${r.usePhonetic ? "ON" : "OFF"} | Output Guard: ${r.useGuard ? "ON" : "OFF"} | Cost: ₹0`);
+      setTxt("raceBefore", `${r.orig} tokens`);
+      setTxt("raceAfter", `${r.opt} tokens (-${r.pct}%)`);
+      setTxt("beforeSub", r.lang === "English" ? "Uncompressed conversational filler • 1-byte ASCII" : "Uncompressed UTF-8 Indic payload • 3-byte character overhead");
+      setTxt("raceSub", `${r.usePhonetic ? "Phonetic ASCII Packed" : "Native Script Pruned"} • ${r.useGuard ? "Output Guarded" : "Standard Output"} • ₹0 Cost`);
     }
-}
 
     function runAnimatedRace() {
-      const text = document.getElementById("promptInput").value;
-      if (!text.trim()) return;
-      const r = analyze(text);
-      document.querySelector('[data-tab="panel3"]').click();
-      const beforeEl = document.getElementById("raceBefore");
-      const afterEl = document.getElementById("raceAfter");
-      const summaryEl = document.getElementById("routerSummary");
-      summaryEl.textContent = `🏁 Racing pipelines on ${r.lang} payload...`;
-      beforeEl.textContent = "⏳ Running...";
-      afterEl.textContent = "⚡ 1ms (Done!)";
+      const inp = document.getElementById("promptInput");
+      if (!inp || !inp.value.trim()) return;
+      const r = analyze(inp.value);
+      const t3 = document.querySelector('[data-tab="panel3"]');
+      if (t3) t3.click();
+      setTxt("routerSummary", `🏁 Racing pipelines on ${r.lang} payload...`);
+      setTxt("raceBefore", "⏳ Running...");
+      setTxt("raceAfter", "⚡ 1ms (Done!)");
       setTimeout(() => {
         const simLatency = Math.max(650, r.orig * 3);
         render();
-        beforeEl.textContent = `${r.orig} tokens (~${simLatency}ms)`;
-        afterEl.textContent = `${r.opt} tokens (1ms • -${r.pct}%)`;
-        summaryEl.textContent = `🏆 TokenSathi Won! Saved ${r.saved} tokens (${r.pct}%) & ${simLatency - 1}ms at 0.000 token overhead`;
+        setTxt("raceBefore", `${r.orig} tokens (~${simLatency}ms)`);
+        setTxt("raceAfter", `${r.opt} tokens (1ms • -${r.pct}%)`);
+        setTxt("routerSummary", `🏆 TokenSathi Won! Saved ${r.saved} tokens (${r.pct}%) & ${simLatency - 1}ms at 0.000 token overhead`);
       }, 400);
     }
 
@@ -403,7 +404,8 @@
       btn.addEventListener("click", () => {
         document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-        document.getElementById("promptInput").value = PRESETS[btn.dataset.preset];
+        const inp = document.getElementById("promptInput");
+        if (inp) inp.value = PRESETS[btn.dataset.preset];
         render();
       });
     });
@@ -413,11 +415,16 @@
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
         document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
         btn.classList.add("active");
-        document.getElementById(btn.dataset.tab).classList.add("active");
+        const p = document.getElementById(btn.dataset.tab);
+        if (p) p.classList.add("active");
       });
     });
 
-    document.getElementById("optimizeBtn").addEventListener("click", () => { render(); document.querySelector('[data-tab="panel2"]').click(); });
+    document.getElementById("optimizeBtn").addEventListener("click", () => {
+      render();
+      const t2 = document.querySelector('[data-tab="panel2"]');
+      if (t2) t2.click();
+    });
     document.getElementById("raceBtn").addEventListener("click", runAnimatedRace);
     document.getElementById("promptInput").addEventListener("input", render);
     document.getElementById("reqSlider").addEventListener("input", render);
