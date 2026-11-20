@@ -141,8 +141,6 @@ def check_semantic_cache(english_query):
     if best_score >= 0.80 and best_match:
         return best_match, round(best_score * 100, 1)
     return None, 0.0
-
-
 def call_gemini(prompt, max_tokens=160):
     """Calls Gemini 2.5 Flash for real translation, prompt compression, and reasoning."""
     if not GEMINI_API_KEY or not GEMINI_API_KEY.startswith("AIza"):
@@ -150,10 +148,7 @@ def call_gemini(prompt, max_tokens=160):
     try:
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "temperature": 0.2,
-                "maxOutputTokens": max_tokens
-            }
+            "generationConfig": {"temperature": 0.2, "maxOutputTokens": max_tokens}
         }
         res = requests.post(
             f"{GEMINI_URL}?key={GEMINI_API_KEY}",
@@ -163,11 +158,10 @@ def call_gemini(prompt, max_tokens=160):
         )
         if res.status_code == 200:
             data = res.json()
-            return data["candidates"]["content"]["parts"]["text"].strip()
+            return data["candidates"][0]["content"]["parts"][0]["text"].strip()
     except Exception:
         pass
     return None
-
 
 def translate_nllb(text, src_lang, tgt_lang, preserve_terms=None):
     if src_lang == tgt_lang:
@@ -210,52 +204,64 @@ def query_qwen(prompt):
         return live_reply
     return "Your order #4821 is confirmed, GST invoice is generated, and delivery is scheduled tomorrow by 10 AM."
 def compress_prompt_smart(text, language):
-    """Fixes stretched words & grammar while compressing prompts into crisp, meaningful text."""
+    """Fixes stretched words & grammar while compressing any prompt or run-on paragraph by 40-70%."""
     cleaned = clean_indic_text(text)
 
     ai_compressed = call_gemini(
-        f"Optimize this {language} prompt: fix stretched words (like 'hiiiiii' -> 'Hi') and grammar errors, "
-        f"remove filler words, and rewrite it so it is concise, clear, and meaningful (40-60% fewer tokens) "
-        f"while keeping the exact language ({language}) and intent. Output ONLY the optimized text:\n\n{cleaned}",
+        f"Rewrite this {language} prompt: fix stretched words ('hiiiiii' -> 'Hi') and grammar errors, "
+        f"remove filler and redundancy, and compress it by 50-70% into a crisp, natural, grammatical prompt "
+        f"while preserving every core fact, name, and intent. Output ONLY the optimized prompt:\n\n{cleaned}",
         max_tokens=120
     )
     if ai_compressed and len(ai_compressed) < len(cleaned):
         return ai_compressed
 
+    # 1. Fix stretched letters ("hiiiiii" -> "hi")
     result = re.sub(r"(.)\1{2,}", r"\1", cleaned)
 
+    # 2. Strip conversational filler & wordy phrasing
     replacements = [
+        (r"^(hi|hello|hey)[,!.\s]+", ""),
+        (r"\bi really need your help\b", "Please help"),
         (r"\bi would really appreciate it if you could please\b", ""),
         (r"\bcould you please\b", ""),
         (r"\bcan you please\b", ""),
         (r"\bi am wanting to\b", "I want to"),
         (r"\bi want you to\b", ""),
         (r"\bsummarize this article for me and give me the main points\b", "Summarize the main points"),
-        (r"\bfor me and give me the\b", "with"),
-        (r"\bfor me and give me\b", "with"),
-        (r"\bfor me\b", ""),
-        (r"\bto me\b", ""),
+        (r"\ba bit\b", ""),
+        (r"\bkind of\b", ""),
+        (r"\bsomewhat\b", ""),
+        (r"\breally\b", ""),
+        (r"\bbasically\b", ""),
+        (r"\bactually\b", ""),
+        (r"\bplease\b", ""),
+        (r"\bkindly\b", ""),
         (r"\bin a detailed manner\b", "clearly"),
         (r"\bthe concept of\b", ""),
         (r"\bthat would help me understand it better\b", ""),
         (r"\band also give me some\b", "with"),
-        (r"\bplease\b", ""),
-        (r"\bkindly\b", ""),
-        (r"\bbasically\b", ""),
-        (r"\bactually\b", ""),
         (r"\bi\b", "I")
     ]
-
     for pattern, repl in replacements:
         result = re.sub(pattern, repl, result, flags=re.IGNORECASE)
 
     result = re.sub(r"\s+([?.!,])", r"\1", result)
     result = re.sub(r"\s+", " ", result).strip()
 
+    # 3. Handle multi-sentence OR long run-on paragraphs (>35 words) cleanly
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', result) if s.strip()]
+    if len(sentences) > 2:
+        result = f"{sentences[0]} {sentences[-1]}"
+    elif len(result.split()) > 35:
+        clauses = [c.strip() for c in re.split(r',\s*(?:so|while|though|and|since|because)\s+|,\s+', result) if len(c.split()) >= 4]
+        if len(clauses) >= 3:
+            result = f"{clauses[0]}. {clauses[len(clauses)//2].capitalize()}. {clauses[-1].capitalize()}"
+        else:
+            words = result.split()
+            result = " ".join(words[:18]) + " — " + " ".join(words[-14:])
+
     if result:
-        sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', result) if s.strip()]
-        if len(sentences) > 2:
-            result = f"{sentences} {sentences[-1]}"
         result = result[:1].upper() + result[1:]
         if result[-1] not in ".!?":
             result += "."
