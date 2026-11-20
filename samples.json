@@ -1,0 +1,22 @@
+{
+    "English": {
+        "text": "Artificial intelligence is transforming how farmers in India access weather forecasts and crop prices.",
+        "english_baseline_tokens": 16
+    },
+    "Kannada": {
+        "text": "ಭಾರತದ ರೈತರು ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ ಮತ್ತು ಬೆಳೆ ಬೆಲೆಗಳನ್ನು ಪಡೆಯುವ ವಿಧಾನವನ್ನು ಕೃತಕ ಬುದ್ಧಿಮತ್ತೆ ಬದಲಾಯಿಸುತ್ತಿದೆ.",
+        "english_baseline_tokens": 16
+    },
+    "Hindi": {
+        "text": "कृत्रिम बुद्धिमत्ता भारत में किसानों द्वारा मौसम के पूर्वानुमान और फसल की कीमतों तक पहुँचने के तरीके को बदल रही है।",
+        "english_baseline_tokens": 16
+    },
+    "Bengali": {
+        "text": "কৃত্রিম বুদ্ধিমত্তা ভারতে কৃষকদের আবহাওয়ার পূর্বাভাস এবং ফসলের দাম জানার পদ্ধতিকে বদলে দিচ্ছে।",
+        "english_baseline_tokens": 16
+    },
+    "Telugu": {
+        "text": "భారతదేశంలోని రైతులు వాతావరణ సూచనలు మరియు పంట ధరలను తెలుసుకునే విధానాన్ని కృత్రిమ మేధస్సు మారుస్తోంది.",
+        "english_baseline_tokens": 16
+    }
+}

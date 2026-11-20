@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenSathi — Eliminate the Indic Token Tax</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #131a2a;
+      --border: #232e47;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #10b981;
+      --red: #ef4444;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 24px; line-height: 1.5; }
+    .container { max-width: 1120px; margin: 0 auto; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+    .brand h1 { font-size: 1.75rem; color: var(--accent); letter-spacing: -0.5px; }
+    .brand p { color: var(--muted); font-size: 0.92rem; }
+    .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid var(--accent); padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; }
+    select, input[type="number"], textarea {
+      background: #0d1322; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 12px; font-size: 0.95rem;
+    }
+    textarea { width: 100%; min-height: 92px; resize: vertical; margin-bottom: 12px; font-size: 1.05rem; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    button {
+      border: none; border-radius: 8px; padding: 10px 18px; font-weight: 600;
+      cursor: pointer; font-size: 0.95rem; transition: 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: #06121e; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-race { background: var(--green); color: #051b11; }
+    .btn-race:hover { filter: brightness(1.1); }
+    .btn-sample { background: #1e293b; color: var(--text); border: 1px solid var(--border); font-size: 0.85rem; padding: 8px 12px; }
+
+    .toggle-label { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; color: var(--muted); cursor: pointer; margin-left: auto; }
+
+    .router-box { border-left: 4px solid var(--accent); background: rgba(56, 189, 248, 0.08); padding: 14px 16px; border-radius: 8px; margin-bottom: 20px; }
+    .router-title { font-weight: 700; color: var(--accent); font-size: 0.95rem; display: flex; justify-content: space-between; }
+    .router-reason { font-size: 0.9rem; color: var(--text); margin-top: 4px; }
+    .risk-tag { display: inline-block; background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid var(--amber); font-size: 0.78rem; padding: 2px 8px; border-radius: 6px; margin-top: 6px; margin-right: 6px; }
+
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .stat { background: #0d1322; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-val { font-size: 1.55rem; font-weight: 700; margin-top: 4px; }
+    .red { color: var(--red); }
+    .green { color: var(--green); }
+    .amber { color: var(--amber); }
+
+    .xray-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 768px) { .xray-grid { grid-template-columns: 1fr; } }
+    .token-box { background: #0d1322; border: 1px solid var(--border); border-radius: 10px; padding: 12px; min-height: 80px; }
+    .chip { display: inline-block; padding: 3px 7px; margin: 3px; border-radius: 5px; font-family: monospace; font-size: 0.88rem; }
+    .chip-bad { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: #fca5a5; }
+    .chip-good { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #6ee7b7; }
+
+    .race-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+    @media (max-width: 768px) { .race-grid { grid-template-columns: 1fr; } }
+    .race-col { background: #0d1322; border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .race-col.winner { border-color: var(--green); box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3); }
+    .reply-bubble { background: #162033; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.92rem; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>TokenSathi ⚡</h1>
+        <p>Smart Indic LLM Router, Token X-Ray & Semantic Cost Optimizer</p>
+      </div>
+      <span class="badge">Qwen2.5-3B + NLLB-200</span>
+    </header>
+
+    <div class="card">
+      <div class="controls">
+        <label><strong>Language:</strong></label>
+        <select id="language">
+          <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+          <option value="Hindi">Hindi (हिन्दी)</option>
+          <option value="Telugu">Telugu (తెలుగు)</option>
+          <option value="Bengali">Bengali (বাংলা)</option>
+          <option value="English">English</option>
+        </select>
+
+        <label style="margin-left: 10px;"><strong>Daily Requests (ROI):</strong></label>
+        <input type="number" id="dailyRequests" value="10000" min="100" step="500" style="width: 120px;" />
+
+        <button class="btn-sample" onclick="loadPreset('Kannada')">Kannada Sample</button>
+        <button class="btn-sample" onclick="loadPreset('Hindi')">Hindi Sample</button>
+        <button class="btn-sample" onclick="loadPreset('Telugu')">Telugu Sample</button>
+        <button class="btn-sample" onclick="loadPreset('Bengali')">Bengali Sample</button>
+      </div>
+
+      <textarea id="promptInput" placeholder="Enter your query in Kannada, Hindi, Telugu, Bengali, or code-mixed text...">ನನ್ನ ಆರ್ಡರ್ #4821 ಎಲ್ಲಿದೆ ಮತ್ತು ನನ್ನ EMI ಪಾವತಿ ವಿವರಗಳನ್ನು ತಿಳಿಸಿ?</textarea>
+
+      <div class="btn-row">
+        <button class="btn-primary" onclick="runAnalyze()">1. Token X-Ray & Router Check</button>
+        <button class="btn-race" onclick="runRace()">2. Run Live Side-by-Side Race ⚡</button>
+
+        <label class="toggle-label">
+          <input type="checkbox" id="hybridMode" checked />
+          <strong>Hybrid Entity Shield</strong> (Keep OTP/EMI/API/numbers in English)
+        </label>
+      </div>
+    </div>
+
+    <div id="analyzeSection" class="hidden">
+      <div class="router-box">
+        <div class="router-title">
+          <span id="routerRoute">SMART ROUTER DECISION</span>
+          <span id="routerConf"></span>
+        </div>
+        <div class="router-reason" id="routerReason"></div>
+        <div id="riskContainer"></div>
+      </div>
+
+      <div class="grid-4">
+        <div class="stat">
+          <div class="stat-label">Indic Token Tax</div>
+          <div class="stat-val red" id="taxMultiplier">0x</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Legacy vs Optimized</div>
+          <div class="stat-val" id="tokenCountCompare">0 → 0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Token Reduction</div>
+          <div class="stat-val green" id="savingsPct">0%</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Startup Monthly Saved</div>
+          <div class="stat-val green" id="monthlySaved">₹0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom: 10px; font-size: 1.05rem;">Token X-Ray Heatmap (Visualizing Token Fragmentation)</h3>
+        <div class="xray-grid">
+          <div>
+            <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 6px;">Standard Tokenizer (High Indic Fragmentation)</p>
+            <div class="token-box" id="legacyTokensBox"></div>
+          </div>
+          <div>
+            <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 6px;">Cleaned + Multilingual Tokenizer</p>
+            <div class="token-box" id="optTokensBox"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="raceSection" class="card hidden">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <h3 style="font-size: 1.15rem;">Live Pipeline Race: Native Script vs. TokenSathi Router</h3>
+        <span class="badge" id="raceRouteBadge">Route</span>
+      </div>
+
+      <div class="race-grid">
+        <div class="race-col">
+          <h4 class="red">❌ Standard Native Pipeline</h4>
+          <p style="font-size: 0.88rem; color: var(--muted); margin-top: 6px;">
+            Total Tokens: <strong id="nativeTokens">0</strong> |
+            Latency: <strong id="nativeLatency">0 ms</strong> |
+            Cost: <strong id="nativeCost">₹0</strong>
+          </p>
+          <div class="reply-bubble" id="nativeReply"></div>
+        </div>
+
+        <div class="race-col winner">
+          <h4 class="green">✅ TokenSathi Smart Pipeline</h4>
+          <p style="font-size: 0.88rem; color: var(--muted); margin-top: 6px;">
+            Total Tokens: <strong class="green" id="smartTokens">0</strong> (<span id="raceReduction">0%</span> saved) |
+            Latency: <strong id="smartLatency">0 ms</strong> |
+            Quality: <strong class="green" id="qualityScore">0%</strong>
+          </p>
+          <p style="font-size: 0.8rem; color: var(--accent); margin-top: 6px;">
+            <strong>English Pivot:</strong> <span id="englishPivot"></span>
+          </p>
+          <div class="reply-bubble" id="smartReply"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
