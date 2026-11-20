@@ -3,19 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TokenSathi v2.0 — ₹0 Token Cost • 100% Rule-Based</title>
+  <title>TokenSathi v2.0 — 100% Rule-Based • Zero LLM • Zero API Key</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { margin: 0; background: #f8fafc; color: #0f172a; padding: 20px; }
-    .container { max-width: 1020px; margin: 0 auto; }
+    .container { max-width: 1040px; margin: 0 auto; }
     header {
       display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
       gap: 12px; background: #fff; padding: 16px 24px; border-radius: 16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 12px;
     }
     .logo { font-size: 1.5rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
     .logo span { font-size: 0.75rem; background: #e0f2fe; color: #0284c7; padding: 3px 8px; border-radius: 6px; }
-    .badge { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+    .proof-bar {
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center;
+      background: #0f172a; color: #f8fafc; padding: 10px 18px; border-radius: 12px;
+      font-size: 0.82rem; font-weight: 600; margin-bottom: 18px;
+    }
+    .proof-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .proof-pill {
+      background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.4);
+      padding: 4px 10px; border-radius: 999px; font-size: 0.78rem;
+    }
     .card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
     .presets { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
     .preset-btn, select {
@@ -25,11 +34,11 @@
     .preset-btn:hover { background: #e2e8f0; }
     .preset-btn.active { background: #6366f1; color: #fff; border-color: #6366f1; }
     textarea {
-      width: 100%; min-height: 130px; border: 2px solid #e2e8f0; border-radius: 12px;
+      width: 100%; min-height: 125px; border: 2px solid #e2e8f0; border-radius: 12px;
       padding: 14px; font-size: 1rem; line-height: 1.5; resize: vertical; outline: none;
     }
     textarea:focus { border-color: #6366f1; }
-    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; align-items: center; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; align-items: center; justify-content: space-between; }
     .btn-primary {
       background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none;
       padding: 11px 22px; border-radius: 999px; font-weight: 700; font-size: 0.95rem; cursor: pointer;
@@ -37,6 +46,11 @@
     .btn-secondary {
       background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;
       padding: 11px 20px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    }
+    .telemetry {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem;
+      background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;
+      padding: 8px 12px; border-radius: 10px;
     }
     .tabs {
       display: flex; gap: 10px; flex-wrap: wrap; background: #fff; padding: 10px;
@@ -65,6 +79,10 @@
       background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px;
       padding: 16px; font-size: 1rem; line-height: 1.6; white-space: pre-wrap; margin-top: 10px;
     }
+    .rule-log {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem;
+      background: #0f172a; color: #38bdf8; padding: 14px; border-radius: 12px; margin-top: 14px; line-height: 1.6;
+    }
     table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
     input[type="range"] { width: 100%; margin: 14px 0; accent-color: #6366f1; }
@@ -73,12 +91,22 @@
 <body>
   <div class="container">
     <header>
-      <div class="logo">⚡ TokenSathi <span>v2.0</span></div>
+      <div class="logo">⚡ TokenSathi <span>v2.0 • Pure Rule Engine</span></div>
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <div class="badge">₹0 TOKEN COST • 100% RULE-BASED</div>
         <button type="button" id="shareBtn" class="btn-secondary">🔗 Share</button>
       </div>
     </header>
+
+    <!-- Unmistakable Zero-LLM / Zero-API Architecture Banner -->
+    <div class="proof-bar">
+      <div class="proof-pills">
+        <span class="proof-pill">🚫 No LLM / AI Model</span>
+        <span class="proof-pill">🔑 No API Keys</span>
+        <span class="proof-pill">🌐 0 External Network Calls</span>
+        <span class="proof-pill">⚙️ 100% Browser RegExp + UTF-8 Math</span>
+      </div>
+      <span style="color:#94a3b8;">Cost: ₹0 Forever</span>
+    </div>
 
     <div class="card">
       <div class="presets">
@@ -101,54 +129,59 @@
       <textarea id="promptInput"></textarea>
 
       <div class="actions">
-        <button type="button" id="optimizeBtn" class="btn-primary">⚡ Optimize & Analyze</button>
-        <button type="button" id="raceBtn" class="btn-secondary">🏁 Run Pipeline Race</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" id="optimizeBtn" class="btn-primary">⚡ Optimize & Analyze</button>
+          <button type="button" id="raceBtn" class="btn-secondary">🏁 Run Pipeline Race</button>
+        </div>
+        <div id="liveTelemetry" class="telemetry">
+          API Calls: 0 | Model Weights: 0 KB | Exec Time: &lt;1ms
+        </div>
       </div>
     </div>
 
     <!-- Navigation Tabs -->
     <div class="tabs">
-      <button type="button" class="tab-btn active" data-tab="panel1">🔍 1. Token Tax Scanner</button>
-      <button type="button" class="tab-btn" data-tab="panel2">✂️ 2. Rule-Based Optimizer</button>
-      <button type="button" class="tab-btn" data-tab="panel3">🛡️ 3. Smart Router & Race</button>
+      <button type="button" class="tab-btn active" data-tab="panel1">🔍 1. UTF-8 Tax Scanner</button>
+      <button type="button" class="tab-btn" data-tab="panel2">✂️ 2. Rule-Based Pruner</button>
+      <button type="button" class="tab-btn" data-tab="panel3">🛡️ 3. Deterministic Pipeline & Proof</button>
     </div>
 
     <!-- PANEL 1 -->
     <div id="panel1" class="panel active">
       <div class="grid-3">
         <div class="metric purple">
-          <small>Tax Multiplier</small>
+          <small>UTF-8 Byte Inflation</small>
           <h2 id="taxMult">1.0x</h2>
-          <p>vs English baseline</p>
+          <p>3-byte Indic vs 1-byte ASCII</p>
         </div>
         <div class="metric green">
-          <small>Tokens (Before → After)</small>
+          <small>Units (Before → After)</small>
           <h2 id="tokenDiff">0 → 0</h2>
-          <p>Subword compression</p>
+          <p>Deterministic UTF-8 byte &amp; rule compression</p>
         </div>
         <div class="metric orange">
-          <small>Token Tax Saved</small>
+          <small>Bloat Removed</small>
           <h2 id="taxSaved">0%</h2>
-          <p>Pure rule-based</p>
+          <p>Pure RegExp + Dictionary</p>
         </div>
       </div>
 
       <div class="grid-3">
         <div class="card">
-          <strong>🧱 Legacy Token Pieces</strong>
+          <strong>🧱 Original Words (Red = Stripped by RegExp)</strong>
           <div id="legacyPieces" class="pieces"></div>
         </div>
         <div class="card">
-          <strong>✨ Optimized Token Pieces</strong>
+          <strong>✨ Kept Core Words (Green = Preserved)</strong>
           <div id="optPieces" class="pieces"></div>
         </div>
       </div>
 
       <div class="card">
-        <strong>📊 Cross-Script Token Tax Breakdown</strong>
+        <strong>📊 Cross-Script UTF-8 Overhead Breakdown</strong>
         <table>
           <thead>
-            <tr><th>Language</th><th>Legacy Tokens</th><th>Optimized Tokens</th><th>Tax Saved</th></tr>
+            <tr><th>Language</th><th>Original Units</th><th>Compressed Units</th><th>Bloat Saved</th></tr>
           </thead>
           <tbody id="scriptTable"></tbody>
         </table>
@@ -177,34 +210,35 @@
     <div id="panel2" class="panel">
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <strong>✂️ Compressed Output (<span id="optBadge">0 tokens saved</span>)</strong>
+          <strong>✂️ Compressed Output (<span id="optBadge">0 units saved</span>)</strong>
           <button type="button" id="copyBtn" class="btn-secondary">📋 Copy Output</button>
         </div>
         <div id="compressedOutput" class="output-box"></div>
         <p style="margin-top:12px; font-weight:700; color:#059669;" id="meaningStatus">Meaning Preserved: PASS</p>
+        <div id="ruleAuditLog" class="rule-log"></div>
       </div>
     </div>
 
-    <!-- PANEL 3 -->
     <div id="panel3" class="panel">
       <div class="card">
-        <strong>🛡️ Deterministic Smart Router & Entity Shield</strong>
+        <strong>🛡️ Deterministic Pipeline & Zero-AI Execution Proof</strong>
         <p id="routerSummary" style="color:#475569;"></p>
         <div class="grid-3" style="margin-top:14px;">
           <div class="metric orange">
-            <small>🐢 Standard Native Pipeline</small>
-            <h2 id="raceBefore">0 tokens</h2>
-            <p>Full bloated Indic payload • High token tax</p>
+            <small>🐢 Raw Uncompressed Payload</small>
+            <h2 id="raceBefore">0 units</h2>
+            <p>Uncompressed UTF-8 Indic payload • 3-byte character overhead</p>
           </div>
           <div class="metric green">
-            <small>⚡ TokenSathi Rule Pipeline (1ms)</small>
-            <h2 id="raceAfter">0 tokens</h2>
-            <p>Filler stripped • 100% Entities Protected</p>
+            <small>⚡ TokenSathi Deterministic Engine (1ms)</small>
+            <h2 id="raceAfter">0 units</h2>
+            <p>Zero API Keys • Zero AI Models • 100% Local RegExp</p>
           </div>
         </div>
       </div>
     </div>
   </div>
+
   <script>
     const PRESETS = {
       bengali: "হ্যালো, আমার আসলে একটা খুব জরুরি সাহায্যের দরকার ছিল, আমি আমার অফিসের বসের কাছে একটা ইমেইল লিখতে চাই কারণ আমাদের নতুন প্রজেক্টটা নির্ধারিত সময়ের চেয়ে একটু পিছিয়ে গেছে, এর মূল কারণ হলো ভেন্ডর সময়মতো ফাইল দেয়নি আর দুজন সদস্য অসুস্থ ছিল, তাই ফাইনাল ডেডলাইনের জন্য আরও ৩ দিন বাড়তি সময় চাইতে চাচ্ছি, তবে বাজেট একদম ঠিক আছে।",
@@ -241,37 +275,46 @@
       return "English";
     }
 
-    function countTokens(text) {
+    function countUnits(text) {
       if (!text || !text.trim()) return 0;
-      let ascii = 0, indic = 0;
-      for (const ch of text) (ch.charCodeAt(0) > 127 ? indic++ : ascii++);
-      return Math.max(1, Math.ceil(ascii / 4 + indic * 1.45));
+      const utf8Bytes = new TextEncoder().encode(text).length;
+      return Math.max(1, Math.ceil(utf8Bytes / 3.2));
     }
 
     function analyze(raw) {
+      const t0 = performance.now();
       const lang = detectLang(raw);
-      const orig = countTokens(raw);
+      const orig = countUnits(raw);
+      const origBytes = new TextEncoder().encode(raw).length;
       const entities = raw.match(/[\d০-৯೦-೯௧-௯]+(?:\s*(?:দিন|days?|hrs?|%|₹|\$|EMI|টাকা|ರೂ|ದಿನ|दिन|రోజుల))?|#[A-Za-z0-9]+/gi) || [];
 
       let cleaned = raw.trim();
-      FILLERS.forEach((rx) => { cleaned = cleaned.replace(rx, ""); });
+      let phraseHits = 0;
+      FILLERS.forEach((rx) => {
+        if (rx.test(cleaned)) phraseHits++;
+        cleaned = cleaned.replace(rx, "");
+      });
 
       const rawWords = raw.trim().split(/\s+/);
+      let stopwordHits = 0;
       const keptWords = cleaned.split(/\s+/).filter((w) => {
         const bare = w.replace(/[,.!?।;:"'‘’“”]/g, "").toLowerCase();
-        return !STOPWORDS.has(bare) || entities.some((e) => w.includes(e));
+        const keep = !STOPWORDS.has(bare) || entities.some((e) => w.includes(e));
+        if (!keep) stopwordHits++;
+        return keep;
       });
 
       let compressed = keptWords.join(" ").replace(/\s+([,.!?।])/g, "$1").trim();
       if (compressed.length < 4) compressed = raw.trim();
 
-      const opt = countTokens(compressed);
+      const opt = countUnits(compressed);
+      const optBytes = new TextEncoder().encode(compressed).length;
       const saved = Math.max(0, orig - opt);
       const pct = orig > 0 ? Math.round((saved / orig) * 100) : 0;
-      const engBaseline = Math.max(1, Math.ceil(raw.length / 4.2));
-      const mult = (orig / engBaseline).toFixed(1) + "x";
+      const mult = (origBytes / Math.max(1, raw.length)).toFixed(1) + "x";
+      const elapsed = Math.max(0.1, (performance.now() - t0)).toFixed(2);
 
-      return { lang, orig, opt, saved, pct, compressed, entities, mult, rawWords, keptWords };
+      return { lang, orig, opt, saved, pct, compressed, entities, mult, rawWords, keptWords, origBytes, optBytes, phraseHits, stopwordHits, elapsed };
     }
 
     function render() {
@@ -283,6 +326,8 @@
       document.getElementById("taxMult").textContent = r.mult;
       document.getElementById("tokenDiff").textContent = `${r.orig} → ${r.opt}`;
       document.getElementById("taxSaved").textContent = `${r.pct}%`;
+      document.getElementById("liveTelemetry").textContent =
+        `API Calls: 0 | Model Weights: 0 KB | UTF-8 Bytes: ${r.origBytes}→${r.optBytes}B | Exec: ${r.elapsed}ms`;
 
       const keptSet = new Set(r.keptWords);
       document.getElementById("legacyPieces").innerHTML = r.rawWords
@@ -301,12 +346,19 @@
       document.getElementById("monthlySaved").textContent = `₹${monthly.toLocaleString("en-IN")}`;
       document.getElementById("annualSaved").textContent = `₹${(monthly * 12).toLocaleString("en-IN")} / yr`;
 
-      document.getElementById("optBadge").textContent = `${r.saved} tokens saved (-${r.pct}%)`;
+      document.getElementById("optBadge").textContent = `${r.saved} units saved (-${r.pct}%)`;
       document.getElementById("compressedOutput").textContent = r.compressed;
       document.getElementById("meaningStatus").textContent = `Meaning Preserved: PASS • Protected Entities: [${r.entities.join(", ") || "None"}]`;
-      document.getElementById("routerSummary").textContent = `Detected Script: ${r.lang} | Entities Shielded: ${r.entities.join(", ") || "None"} | Cost: ₹0`;
-      document.getElementById("raceBefore").textContent = `${r.orig} tokens`;
-      document.getElementById("raceAfter").textContent = `${r.opt} tokens (-${r.pct}%)`;
+      document.getElementById("ruleAuditLog").innerHTML =
+        `> [STEP 1] Unicode Range Check: Detected ${r.lang} (0 neural models loaded)<br>` +
+        `> [STEP 2] RegExp Entity Lock: Protected [${r.entities.join(", ") || "None"}]<br>` +
+        `> [STEP 3] Rule Pruning: Stripped ${r.phraseHits} filler patterns & ${r.stopwordHits} stopwords<br>` +
+        `> [STEP 4] Native TextEncoder UTF-8 Check: ${r.origBytes} bytes → ${r.optBytes} bytes (${r.elapsed}ms, ₹0 cost)`;
+
+      document.getElementById("routerSummary").textContent =
+        `Engine: 100% Client-Side RegExp + TextEncoder | Script: ${r.lang} | External API Calls: 0 | Cost: ₹0`;
+      document.getElementById("raceBefore").textContent = `${r.orig} units`;
+      document.getElementById("raceAfter").textContent = `${r.opt} units (-${r.pct}%)`;
     }
 
     function runAnimatedRace() {
@@ -319,19 +371,16 @@
       const afterEl = document.getElementById("raceAfter");
       const summaryEl = document.getElementById("routerSummary");
 
-      summaryEl.textContent = `🏁 Racing pipelines on ${r.lang} payload...`;
-      beforeEl.textContent = "⏳ Running...";
-      afterEl.textContent = "⚡ 1ms (Done!)";
+      summaryEl.textContent = `🏁 Benchmarking uncompressed vs deterministic rule engine...`;
+      beforeEl.textContent = "⏳ Measuring...";
+      afterEl.textContent = `⚡ ${r.elapsed}ms (Done!)`;
 
       setTimeout(() => {
-        const simLatency = Math.max(650, r.orig * 3);
-        beforeEl.textContent = `${r.orig} tokens (~${simLatency}ms)`;
-        afterEl.textContent = `${r.opt} tokens (1ms • -${r.pct}%)`;
-        summaryEl.textContent = `🏆 TokenSathi Won! Saved ${r.saved} tokens (${r.pct}%) & ${simLatency - 1}ms latency at ₹0 cost | Entities Shielded: [${r.entities.join(", ") || "None"}]`;
         render();
-        beforeEl.textContent = `${r.orig} tokens (~${simLatency}ms)`;
-        afterEl.textContent = `${r.opt} tokens (1ms • -${r.pct}%)`;
-      }, 450);
+        beforeEl.textContent = `${r.orig} units (${r.origBytes} B)`;
+        afterEl.textContent = `${r.opt} units (${r.optBytes} B • -${r.pct}%)`;
+        summaryEl.textContent = `🏆 Completed in ${r.elapsed}ms with 0 API keys & 0 AI models • Saved ${r.saved} units (${r.pct}%)`;
+      }, 400);
     }
 
     document.querySelectorAll(".preset-btn").forEach(btn => {
@@ -375,11 +424,9 @@
       b.textContent = "✅ Link Copied!";
       setTimeout(() => (b.textContent = "🔗 Share"), 1500);
     });
+
     document.getElementById("promptInput").value = PRESETS.bengali;
     render();
   </script>
 </body>
 </html>
-
-
-  
