@@ -17,8 +17,9 @@ optimized_encoding = tiktoken.get_encoding("o200k_base")
 DATASET_PATH = "samples.json"
 
 # Reads GEMINI_API_KEY safely from environment variables (set in Render or terminal)
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_URL = "https://googleapis.com"
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_URL = "https://groq.com"
+
 
 NLLB_LANG_CODES = {
     "Kannada": "kan_Knda",
@@ -141,27 +142,32 @@ def check_semantic_cache(english_query):
     if best_score >= 0.80 and best_match:
         return best_match, round(best_score * 100, 1)
     return None, 0.0
-def call_gemini(prompt, max_tokens=160):
-    """Calls Gemini 2.5 Flash for real translation, prompt compression, and reasoning."""
-    if not GEMINI_API_KEY or not GEMINI_API_KEY.startswith("AIza"):
+def call_gemini(prompt, max_tokens=250):
+    """Calls free Groq Llama-3.1-8B for ultra-fast translation, compression, and reasoning."""
+    if not GROQ_API_KEY or not GROQ_API_KEY.startswith("gsk_"):
         return None
     try:
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.2, "maxOutputTokens": max_tokens}
-        }
         res = requests.post(
-            f"{GEMINI_URL}?key={GEMINI_API_KEY}",
-            headers={"Content-Type": "application/json"},
-            json=payload,
+            GROQ_URL,
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama-3.1-8b-instant",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.2,
+                "max_tokens": max_tokens
+            },
             timeout=10
         )
         if res.status_code == 200:
             data = res.json()
-            return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+            return data["choices"][0]["message"]["content"].strip()
     except Exception:
         pass
     return None
+
 
 def translate_nllb(text, src_lang, tgt_lang, preserve_terms=None):
     if src_lang == tgt_lang:
