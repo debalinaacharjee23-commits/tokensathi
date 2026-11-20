@@ -210,17 +210,19 @@ def query_qwen(prompt):
         return live_reply
     return "Your order #4821 is confirmed, GST invoice is generated, and delivery is scheduled tomorrow by 10 AM."
 def compress_prompt_smart(text, language):
-    """Compresses prompts into natural, grammatical short sentences while keeping meaning."""
+    """Fixes stretched words & grammar while compressing prompts into crisp, meaningful text."""
     cleaned = clean_indic_text(text)
 
     ai_compressed = call_gemini(
-        f"Rewrite this {language} prompt so it is 40% to 60% shorter, natural, and grammatically complete. "
-        f"Keep the exact language ({language}) and preserve every core fact, name, or request. "
-        f"Output ONLY the rewritten prompt:\n\n{cleaned}",
-        max_tokens=100
+        f"Optimize this {language} prompt: fix stretched words (like 'hiiiiii' -> 'Hi') and grammar errors, "
+        f"remove filler words, and rewrite it so it is concise, clear, and meaningful (40-60% fewer tokens) "
+        f"while keeping the exact language ({language}) and intent. Output ONLY the optimized text:\n\n{cleaned}",
+        max_tokens=120
     )
     if ai_compressed and len(ai_compressed) < len(cleaned):
         return ai_compressed
+
+    result = re.sub(r"(.)\1{2,}", r"\1", cleaned)
 
     replacements = [
         (r"\bi would really appreciate it if you could please\b", ""),
@@ -228,6 +230,11 @@ def compress_prompt_smart(text, language):
         (r"\bcan you please\b", ""),
         (r"\bi am wanting to\b", "I want to"),
         (r"\bi want you to\b", ""),
+        (r"\bsummarize this article for me and give me the main points\b", "Summarize the main points"),
+        (r"\bfor me and give me the\b", "with"),
+        (r"\bfor me and give me\b", "with"),
+        (r"\bfor me\b", ""),
+        (r"\bto me\b", ""),
         (r"\bin a detailed manner\b", "clearly"),
         (r"\bthe concept of\b", ""),
         (r"\bthat would help me understand it better\b", ""),
@@ -236,25 +243,24 @@ def compress_prompt_smart(text, language):
         (r"\bkindly\b", ""),
         (r"\bbasically\b", ""),
         (r"\bactually\b", ""),
-        (r"(.)\1{2,}", r"\1")
+        (r"\bi\b", "I")
     ]
 
-    result = cleaned
     for pattern, repl in replacements:
         result = re.sub(pattern, repl, result, flags=re.IGNORECASE)
 
-    result = re.sub(r"^(hi|hello|hey)[,!.\s]+", "", result, flags=re.IGNORECASE)
     result = re.sub(r"\s+([?.!,])", r"\1", result)
     result = re.sub(r"\s+", " ", result).strip()
+
     if result:
         sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', result) if s.strip()]
         if len(sentences) > 2:
-            result = f"{sentences[0]} {sentences[-1]}"
+            result = f"{sentences} {sentences[-1]}"
         result = result[:1].upper() + result[1:]
         if result[-1] not in ".!?":
             result += "."
-                return result if result else cleaned
 
+    return result if result else cleaned
 
 @app.route("/")
 def home():
