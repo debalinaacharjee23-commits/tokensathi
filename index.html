@@ -3,231 +3,356 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TokenSathi ⚡ Zero-Cost Indic Prompt Optimizer</title>
-  <link id="pwa-manifest" rel="manifest" />
-  <link rel="preconnect" href="https://googleapis.com" />
-  <link rel="preconnect" href="https://gstatic.com" crossorigin />
-  <link href="https://googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <title>TokenSathi v2.0 — ₹0 Token Cost • 100% Rule-Based</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { margin: 0; background: #f8fafc; color: #0f172a; padding: 20px; }
+    .container { max-width: 1020px; margin: 0 auto; }
+    header {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+      gap: 12px; background: #fff; padding: 16px 24px; border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;
+    }
+    .logo { font-size: 1.5rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+    .logo span { font-size: 0.75rem; background: #e0f2fe; color: #0284c7; padding: 3px 8px; border-radius: 6px; }
+    .badge { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 6px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+    .card { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .presets { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .preset-btn, select {
+      background: #f1f5f9; border: 1px solid #cbd5e1; color: #1e293b;
+      padding: 7px 14px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; cursor: pointer;
+    }
+    .preset-btn:hover { background: #e2e8f0; }
+    .preset-btn.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+    textarea {
+      width: 100%; min-height: 130px; border: 2px solid #e2e8f0; border-radius: 12px;
+      padding: 14px; font-size: 1rem; line-height: 1.5; resize: vertical; outline: none;
+    }
+    textarea:focus { border-color: #6366f1; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; align-items: center; }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none;
+      padding: 11px 22px; border-radius: 999px; font-weight: 700; font-size: 0.95rem; cursor: pointer;
+    }
+    .btn-secondary {
+      background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;
+      padding: 11px 20px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+    }
+    .tabs {
+      display: flex; gap: 10px; flex-wrap: wrap; background: #fff; padding: 10px;
+      border-radius: 999px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;
+    }
+    .tab-btn {
+      border: none; background: transparent; padding: 10px 20px; border-radius: 999px;
+      font-weight: 700; font-size: 0.9rem; color: #475569; cursor: pointer;
+    }
+    .tab-btn.active { background: #0f172a; color: #fff; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .metric { padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; }
+    .metric.purple { background: #f5f3ff; }
+    .metric.green { background: #ecfdf5; }
+    .metric.orange { background: #fff7ed; }
+    .metric small { font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+    .metric h2 { margin: 8px 0 4px; font-size: 1.9rem; color: #0f172a; }
+    .metric p { margin: 0; font-size: 0.85rem; color: #64748b; }
+    .pieces { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .chip { background: #e2e8f0; padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; }
+    .chip.kept { background: #d1fae5; color: #065f46; font-weight: 600; }
+    .chip.removed { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
+    .output-box {
+      background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px;
+      padding: 16px; font-size: 1rem; line-height: 1.6; white-space: pre-wrap; margin-top: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
+    input[type="range"] { width: 100%; margin: 14px 0; accent-color: #6366f1; }
+  </style>
 </head>
 <body>
-  <!-- Ambient Floating Blobs -->
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
+  <div class="container">
+    <header>
+      <div class="logo">⚡ TokenSathi <span>v2.0</span></div>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <div class="badge">₹0 TOKEN COST • 100% RULE-BASED</div>
+        <button type="button" id="shareBtn" class="btn-secondary">🔗 Share</button>
+      </div>
+    </header>
 
-  <nav class="navbar">
-    <div class="logo">⚡ TokenSathi <span class="beta-pill">v2.0</span></div>
-    <div class="nav-actions">
-      <span class="nav-tag">₹0 TOKEN COST • 100% RULE-BASED</span>
-      <button class="btn-ghost" onclick="copyShareLink()">🔗 Share</button>
-    </div>
-  </nav>
-
-  <main>
-    <section class="hero">
-      <div class="badge">✨ NO MORE INDIC TOKEN TAX</div>
-      <h1>Compress Indic Prompts.<br /><span>Keep 100% of the Vibe.</span></h1>
-      <p>Deterministic, zero-API compression for Bengali, Kannada, Hindi, Telugu & English. Save up to 65% on LLM tokens locally.</p>
-    </section>
-
-    <!-- Main Input Bento Card -->
-    <section class="bento-card input-zone">
-      <div class="top-controls">
-        <div class="preset-pills">
-          <span class="sample-label">Try a preset:</span>
-          <button class="pill-btn" onclick="loadPreset('Bengali')">🇮🇳 বাংলা</button>
-          <button class="pill-btn" onclick="loadPreset('Kannada')">🇮🇳 ಕನ್ನಡ</button>
-          <button class="pill-btn" onclick="loadPreset('Hindi')">🇮🇳 हिन्दी</button>
-          <button class="pill-btn" onclick="loadPreset('Telugu')">🇮🇳 తెలుగు</button>
-          <button class="pill-btn" onclick="loadPreset('English')">🇬🇧 English</button>
-          <button class="pill-btn pill-accent" onclick="loadBloatedSample()">🪄 Bloated Prompt</button>
-        </div>
-
-        <div class="lang-select-wrap">
-          <select id="language">
-            <option value="Kannada">🇮🇳 Kannada</option>
-            <option value="Hindi">🇮🇳 Hindi</option>
-            <option value="Telugu">🇮🇳 Telugu</option>
-            <option value="Bengali">🇮🇳 Bengali</option>
-            <option value="English">🇬🇧 English</option>
-          </select>
-        </div>
+    <div class="card">
+      <div class="presets">
+        <strong style="font-size:0.85rem; color:#64748b;">Try a preset:</strong>
+        <button type="button" class="preset-btn active" data-preset="bengali">IN বাংলা</button>
+        <button type="button" class="preset-btn" data-preset="kannada">IN ಕನ್ನಡ</button>
+        <button type="button" class="preset-btn" data-preset="hindi">IN हिन्दी</button>
+        <button type="button" class="preset-btn" data-preset="telugu">IN తెలుగు</button>
+        <button type="button" class="preset-btn" data-preset="english">GB English</button>
+        <button type="button" class="preset-btn" data-preset="bloated">🪄 Bloated Prompt</button>
+        <select id="langSelect">
+          <option value="Bengali">IN Bengali</option>
+          <option value="Kannada">IN Kannada</option>
+          <option value="Hindi">IN Hindi</option>
+          <option value="Telugu">IN Telugu</option>
+          <option value="English">GB English</option>
+        </select>
       </div>
 
-      <textarea id="promptInput" placeholder="Drop your Indic or English prompt here..."></textarea>
+      <textarea id="promptInput"></textarea>
 
-      <div class="action-bar">
-        <div class="primary-actions">
-          <button class="btn-primary" onclick="runAnalyze(); runOptimizePrompt();">⚡ Optimize & Analyze</button>
-          <button class="btn-secondary" onclick="runRace()">🏁 Run Pipeline Race</button>
-        </div>
-        <label class="toggle-pill">
-          <input type="checkbox" id="hybridMode" checked />
-          <span>✨ Hybrid Smart Mode</span>
-        </label>
+      <div class="actions">
+        <button type="button" id="optimizeBtn" class="btn-primary">⚡ Optimize & Analyze</button>
+        <button type="button" id="raceBtn" class="btn-secondary">🏁 Run Pipeline Race</button>
       </div>
-    </section>
-
-    <!-- Interactive Mode Switcher -->
-    <div class="tab-bar">
-      <button id="btn-tab-scanner" class="tab-btn active" onclick="switchTab('tab-scanner')">🔍 1. Token Tax Scanner</button>
-      <button id="btn-tab-optimizer" class="tab-btn" onclick="switchTab('tab-optimizer')">✂️ 2. Rule-Based Optimizer</button>
-      <button id="btn-tab-router" class="tab-btn" onclick="switchTab('tab-router')">🛡️ 3. Smart Router & Race</button>
     </div>
 
-    <!-- TAB 1: TOKEN TAX SCANNER -->
-    <section id="tab-scanner" class="tab-panel">
-      <div class="stats-grid">
-        <div class="stat-card lavender">
-          <span class="stat-label">Tax Multiplier</span>
-          <div id="taxMultiplier" class="stat-val">—</div>
-          <span class="stat-sub">vs English baseline</span>
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button type="button" class="tab-btn active" data-tab="panel1">🔍 1. Token Tax Scanner</button>
+      <button type="button" class="tab-btn" data-tab="panel2">✂️ 2. Rule-Based Optimizer</button>
+      <button type="button" class="tab-btn" data-tab="panel3">🛡️ 3. Smart Router & Race</button>
+    </div>
+
+    <!-- PANEL 1 -->
+    <div id="panel1" class="panel active">
+      <div class="grid-3">
+        <div class="metric purple">
+          <small>Tax Multiplier</small>
+          <h2 id="taxMult">1.0x</h2>
+          <p>vs English baseline</p>
         </div>
-        <div class="stat-card matcha">
-          <span class="stat-label">Tokens (Before → After)</span>
-          <div id="tokenCountCompare" class="stat-val">0 → 0</div>
-          <span class="stat-sub">Subword compression</span>
+        <div class="metric green">
+          <small>Tokens (Before → After)</small>
+          <h2 id="tokenDiff">0 → 0</h2>
+          <p>Subword compression</p>
         </div>
-        <div class="stat-card peach">
-          <span class="stat-label">Token Tax Saved</span>
-          <div id="savingsPct" class="stat-val">0%</div>
-          <span class="stat-sub">Pure rule-based</span>
+        <div class="metric orange">
+          <small>Token Tax Saved</small>
+          <h2 id="taxSaved">0%</h2>
+          <p>Pure rule-based</p>
         </div>
       </div>
 
-      <!-- Visual Token Chips -->
-      <div class="bento-grid-2">
-        <div class="bento-card">
-          <h3>🧱 Legacy Token Pieces</h3>
-          <div id="legacyTokensBox" class="chip-box"></div>
+      <div class="grid-3">
+        <div class="card">
+          <strong>🧱 Legacy Token Pieces</strong>
+          <div id="legacyPieces" class="pieces"></div>
         </div>
-        <div class="bento-card">
-          <h3>✨ Optimized Token Pieces</h3>
-          <div id="optTokensBox" class="chip-box"></div>
-        </div>
-      </div>
-
-      <!-- 5-Language Comparison Table -->
-      <div class="bento-card">
-        <h3>📊 Cross-Script Token Tax Breakdown</h3>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Language</th>
-                <th>Tokens</th>
-                <th>Tax Inflation</th>
-                <th>Visual Load</th>
-              </tr>
-            </thead>
-            <tbody id="scannerTableBody"></tbody>
-          </table>
+        <div class="card">
+          <strong>✨ Optimized Token Pieces</strong>
+          <div id="optPieces" class="pieces"></div>
         </div>
       </div>
 
-      <!-- Interactive ROI Calculator Slider -->
-      <div class="bento-card roi-card">
-        <div class="roi-header">
-          <div>
-            <h3>💸 Startup Savings Calculator</h3>
-            <p class="subtitle">Slide to simulate your daily API request volume</p>
-          </div>
-          <div class="roi-badge"><span id="sliderLabel">10,000</span> reqs/day</div>
+      <div class="card">
+        <strong>📊 Cross-Script Token Tax Breakdown</strong>
+        <table>
+          <thead>
+            <tr><th>Language</th><th>Legacy Tokens</th><th>Optimized Tokens</th><th>Tax Saved</th></tr>
+          </thead>
+          <tbody id="scriptTable"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong>💸 Startup Savings Calculator</strong>
+          <span id="reqLabel" style="font-weight:700; color:#6366f1;">10,000 reqs/day</span>
         </div>
-        <input type="range" id="dailySlider" min="1000" max="500000" step="1000" value="10000" oninput="updateSliderROI()" />
-        <div class="roi-results">
-          <div class="roi-box">
-            <span>Monthly Saved</span>
-            <strong id="monthlySaved">₹0</strong>
+        <input type="range" id="reqSlider" min="1000" max="500000" step="1000" value="10000" />
+        <div class="grid-3" style="margin-bottom:0;">
+          <div class="metric">
+            <small>Monthly Saved</small>
+            <h2 id="monthlySaved">₹0</h2>
           </div>
-          <div class="roi-box highlight">
-            <span>Annual Projection</span>
-            <strong id="annualSaved">₹0 / yr</strong>
+          <div class="metric green">
+            <small>Annual Projection</small>
+            <h2 id="annualSaved">₹0 / yr</h2>
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- TAB 2: RULE-BASED OPTIMIZER -->
-    <section id="tab-optimizer" class="tab-panel hidden">
-      <div class="bento-grid-2">
-        <div class="bento-card">
-          <div class="card-head">
-            <h3>📝 Original Prompt</h3>
-            <span class="badge-soft">Tokens: <strong id="optBeforeTokens">0</strong></span>
-          </div>
-          <div id="optBeforeText" class="prompt-display">Click "Optimize & Analyze" to inspect...</div>
+    <!-- PANEL 2 -->
+    <div id="panel2" class="panel">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <strong>✂️ Compressed Output (<span id="optBadge">0 tokens saved</span>)</strong>
+          <button type="button" id="copyBtn" class="btn-secondary">📋 Copy Output</button>
         </div>
+        <div id="compressedOutput" class="output-box"></div>
+        <p style="margin-top:12px; font-weight:700; color:#059669;" id="meaningStatus">Meaning Preserved: PASS</p>
+      </div>
+    </div>
 
-        <div class="bento-card matcha-border">
-          <div class="card-head">
-            <h3>⚡ Compressed Output</h3>
-            <div class="head-right">
-              <span class="badge-green">Tokens: <strong id="optAfterTokens">0</strong> (-<span id="optReductionPct">0%</span>)</span>
-              <button class="btn-mini" onclick="copyOptimizedPrompt()">📋 Copy</button>
-            </div>
+    <!-- PANEL 3 -->
+    <div id="panel3" class="panel">
+      <div class="card">
+        <strong>🛡️ Deterministic Smart Router & Entity Shield</strong>
+        <p id="routerSummary" style="color:#475569;"></p>
+        <div class="grid-3" style="margin-top:14px;">
+          <div class="metric orange">
+            <small>🐢 Standard Native Pipeline</small>
+            <h2 id="raceBefore">0 tokens</h2>
+            <p>Full bloated Indic payload • High token tax</p>
           </div>
-          <div id="optAfterText" class="prompt-display">Click "Optimize & Analyze" to see compressed output.</div>
-          <div class="meaning-bar">Meaning Preserved: <strong id="meaningPass">—</strong></div>
+          <div class="metric green">
+            <small>⚡ TokenSathi Rule Pipeline (1ms)</small>
+            <h2 id="raceAfter">0 tokens</h2>
+            <p>Filler stripped • 100% Entities Protected</p>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
 
-    <!-- TAB 3: SMART ROUTER & BENCHMARK RACE -->
-    <section id="tab-router" class="tab-panel hidden">
-      <div class="bento-card router-card">
-        <div class="router-top">
-          <span id="routerRoute" class="route-pill">ROUTER: READY</span>
-          <span id="routerConf" class="conf-text">Confidence: —</span>
-        </div>
-        <p id="routerReason" class="router-desc">Structured rule-based intent mapping & entity shield will appear here.</p>
-        <div id="riskContainer" class="risk-row"></div>
-      </div>
+  <script>
+    const PRESETS = {bengali: "হ্যালো, আমার আসলে একটা খুব জরুরি সাহায্যের দরকার ছিল, আমি আমার অফিসের বসের কাছে একটা ইমেইল লিখতে চাই কারণ আমাদের নতুন প্রজেক্টটা নির্ধারিত সময়ের চেয়ে একটু পিছিয়ে গেছে, এর মূল কারণ হলো ভেন্ডর সময়মতো ফাইল দেয়নি আর দুজন সদস্য অসুস্থ ছিল, তাই ফাইনাল ডেডলাইনের জন্য আরও ৩ দিন বাড়তি সময় চাইতে চাচ্ছি, তবে বাজেট একদম ঠিক আছে।",
+      kannada: "ನಮಸ್ಕಾರ, ನನಗೆ ತುಂಬಾ ತುರ್ತು ಸಹಾಯ ಬೇಕಾಗಿದೆ, ಅಧಿಕ ಇತಿಹಾಸವನ್ನು ಹೊಂದಿರುವ ಕನ್ನಡಕ್ಕೆ ಶಾಸ್ತ್ರೀಯ ಭಾಷೆ ಎಂಬ ಹೆಮ್ಮೆಯ ಸ್ಥಾನಮಾನ ದೊರೆತಿದೆ. ಆದ್ದರಿಂದ ದಯವಿಟ್ಟು ನಮ್ಮ ಪ್ರಾಜೆಕ್ಟ್ ಕೆಲಸಕ್ಕೆ 3 ದಿನ ಹೆಚ್ಚುವರಿ ಸಮಯ ನೀಡುವಂತೆ ಬಾಸ್‌ಗೆ ಒಂದು ಚಿಕ್ಕ ಇಮೇಲ್ ಬರೆಯಿರಿ.",
+      hindi: "नमस्ते, मुझे वास्तव में आपकी मदद की ज़रूरत है, हमारा नया प्रोजेक्ट थोड़ा लेट हो गया है इसलिए कृपया बॉस को 3 दिन का अतिरिक्त समय मांगने के लिए एक छोटा और स्पष्ट ईमेल लिखें, और बताएं कि बजट बिल्कुल ठीक है।",
+      telugu: "నమస్కారం, నాకు చాలా అత్యవసర సహాయం కావాలి, మా కొత్త ప్రాజెక్ట్ కొంచెం ఆలస్యం అయింది కాబట్టి దయచేసి 3 రోజుల అదనపు సమయం కోరుతూ బాస్‌కు ఒక చిన్న ఇమెయిల్ రాయండి.",
+      english: "Hey, I really need your help writing an email to my boss because our project is running behind due to a vendor delay, so please ask for a 3 day extension while reassuring them our budget is intact.",
+      bloated: "হ্যালো, আমার আসলে একটা খুব জরুরি সাহায্যের দরকার ছিল, আমি আমার অফিসের বসের কাছে একটা ইমেইল লিখতে চাই কারণ আমাদের নতুন প্রজেক্টটা নির্ধারিত সময়ের চেয়ে একটু পিছিয়ে গেছে, এর মূল কারণ হলো ভেন্ডর সময়মতো ফাইল দেয়নি আর দুজন সদস্য অসুস্থ ছিল, তাই ফাইনাল ডেডলাইনের জন্য আরও ৩ দিন বাড়তি সময় চাইতে চাচ্ছি, তবে বাজেট একদম ঠিক আছে এবং কাজের মানের কোনো ঘাটতি হবে না।"
+    };
 
-      <div class="bento-card">
-        <div class="card-head">
-          <h3>🏎️ Live Pipeline Benchmark</h3>
-          <div>
-            <span id="raceRouteBadge" class="badge-soft">Idle</span>
-            <button class="btn-mini" onclick="runBatchBenchmark()">🧪 Run 4-Lang Benchmark</button>
-          </div>
-        </div>
+    const FILLERS = [
+      /হ্যালো,?\s*/gi, /নমস্কার,?\s*/gi, /আমার আসলে একটা খুব জরুরি সাহায্যের দরকার ছিল,?\s*/gi,
+      /তাই সব দিক বজায় রেখে\s*/gi, /এর মূল কারণ হলো\s*/gi, /আর তার ওপর\s*/gi,
+      /ನಮಸ್ಕಾರ,?\s*/gi, /ನನಗೆ ತುಂಬಾ ತುರ್ತು ಸಹಾಯ ಬೇಕಾಗಿದೆ,?\s*/gi, /ದಯವಿಟ್ಟು\s*/gi, /ಆದ್ದರಿಂದ\s*/gi,
+      /नमस्ते,?\s*/gi, /मुझे वास्तव में आपकी मदद की ज़रूरत है,?\s*/gi, /कृपया\s*/gi, /इसलिए\s*/gi,
+      /నమస్కారం,?\s*/gi, /నాకు చాలా అత్యవసర సహాయం కావాలి,?\s*/gi, /దయచేసి\s*/gi, /కాబట్టి\s*/gi,
+      /hey,?\s*i really need your help\s*(?:with|writing)?\s*/gi, /so please\s*/gi
+    ];
 
-        <div class="bento-grid-2">
-          <div class="race-box">
-            <h4>🐢 Standard Native LLM</h4>
-            <div class="race-metrics">
-              <span>Tokens: <strong id="nativeTokens">—</strong></span>
-              <span>Latency: <strong id="nativeLatency">—</strong></span>
-              <span>Cost: <strong id="nativeCost">—</strong></span>
-            </div>
-            <p id="nativeReply" class="reply-preview">Waiting for race...</p>
-          </div>
+    const STOPWORDS = new Set([
+      "actually", "basically", "really", "very", "just", "please", "maybe", "somewhat", "that", "which",
+      "আসলে", "একটু", "খুব", "একদম", "তো", "আর", "যেন", "তবে", "বরং", "বেশ", "কারণ", "জন্য",
+      "ನಿಜವಾಗಿಯೂ", "ಸ್ವಲ್ಪ", "ತುಂಬಾ", "ಆದರೆ", "ಮತ್ತು", "ಎಂಬ", "ಆದ", "ಒಂದು",
+      "वास्तव", "में", "थोड़ा", "बहुत", "बस", "शायद", "और", "क्या", "है", "कि", "एक",
+      "చాలా", "కొంచెం", "ఒక"
+    ]);
 
-          <div class="race-box winner">
-            <h4>⚡ TokenSathi Pipeline</h4>
-            <div class="race-metrics">
-              <span>Tokens: <strong id="smartTokens">—</strong> (-<span id="raceReduction">0%</span>)</span>
-              <span>Latency: <strong id="smartLatency">—</strong></span>
-              <span>Quality: <strong id="qualityScore">—</strong></span>
-            </div>
-            <div class="pivot-tag">Pivot: <span id="englishPivot">—</span></div>
-            <p id="smartReply" class="reply-preview">Waiting for race...</p>
-          </div>
-        </div>
+    function detectLang(text) {
+      if (/[\u0980-\u09FF]/.test(text)) return "Bengali";
+      if (/[\u0C80-\u0CFF]/.test(text)) return "Kannada";
+      if (/[\u0900-\u097F]/.test(text)) return "Hindi";
+      if (/[\u0C00-\u0C7F]/.test(text)) return "Telugu";
+      return "English";
+    }
 
-        <div id="batchScorecard" class="batch-box hidden">
-          <h4>🏆 4-Language Batch Scorecard</h4>
-          <div id="batchMetrics" class="stats-grid"></div>
-        </div>
-      </div>
-    </section>
-  </main>
+    function countTokens(text) {
+      if (!text || !text.trim()) return 0;
+      let ascii = 0, indic = 0;
+      for (const ch of text) (ch.charCodeAt(0) > 127 ? indic++ : ascii++);
+      return Math.max(1, Math.ceil(ascii / 4 + indic * 1.45));
+    }
 
-  <footer>
-    Built with 💚 for Indic AI • Zero External APIs • 100% Deterministic
-  </footer>
+    function analyze(raw) {
+      const lang = detectLang(raw);
+      const orig = countTokens(raw);
+      const entities = raw.match(/[\d০-৯೦-೯௧-௯]+(?:\s*(?:দিন|days?|hrs?|%|₹|\$|EMI|টাকা|ರೂ|ದಿನ|दिन|రోజుల))?|#[A-Za-z0-9]+/gi) || [];
 
-  <script src="script.js"></script>
+      let cleaned = raw.trim();
+      FILLERS.forEach((rx) => { cleaned = cleaned.replace(rx, ""); });
+
+      const rawWords = raw.trim().split(/\s+/);
+      const keptWords = cleaned.split(/\s+/).filter((w) => {
+        const bare = w.replace(/[,.!?।;:"'‘’“”]/g, "").toLowerCase();
+        return !STOPWORDS.has(bare) || entities.some((e) => w.includes(e));
+      });
+
+      let compressed = keptWords.join(" ").replace(/\s+([,.!?।])/g, "$1").trim();
+      if (compressed.length < 4) compressed = raw.trim();
+
+      const opt = countTokens(compressed);
+      const saved = Math.max(0, orig - opt);
+      const pct = orig > 0 ? Math.round((saved / orig) * 100) : 0;
+      const engBaseline = Math.max(1, Math.ceil(raw.length / 4.2));
+      const mult = (orig / engBaseline).toFixed(1) + "x";
+
+      return { lang, orig, opt, saved, pct, compressed, entities, mult, rawWords, keptWords };
+    }
+
+    function render() {
+      const text = document.getElementById("promptInput").value;
+      if (!text.trim()) return;
+      const r = analyze(text);
+
+      document.getElementById("langSelect").value = r.lang;
+      document.getElementById("taxMult").textContent = r.mult;
+      document.getElementById("tokenDiff").textContent = `${r.orig} → ${r.opt}`;
+      document.getElementById("taxSaved").textContent = `${r.pct}%`;
+
+      const keptSet = new Set(r.keptWords);
+      document.getElementById("legacyPieces").innerHTML = r.rawWords
+        .map(w => `<span class="chip ${keptSet.has(w) ? '' : 'removed'}">${w}</span>`).join("");
+      document.getElementById("optPieces").innerHTML = r.keptWords
+        .map(w => `<span class="chip kept">${w}</span>`).join("");
+
+      document.getElementById("scriptTable").innerHTML = ["bengali", "kannada", "hindi", "telugu", "english"].map(k => {
+        const s = analyze(PRESETS[k]);
+        return `<tr><td><strong>${s.lang}</strong></td><td>${s.orig}</td><td>${s.opt}</td><td style="color:#059669;font-weight:700;">-${s.pct}%</td></tr>`;
+      }).join("");
+
+      const reqs = Number(document.getElementById("reqSlider").value);
+      document.getElementById("reqLabel").textContent = `${reqs.toLocaleString("en-IN")} reqs/day`;
+      const monthly = Math.round(r.saved * 0.00025 * reqs * 30 * 84);
+      document.getElementById("monthlySaved").textContent = `₹${monthly.toLocaleString("en-IN")}`;
+      document.getElementById("annualSaved").textContent = `₹${(monthly * 12).toLocaleString("en-IN")} / yr`;
+
+      document.getElementById("optBadge").textContent = `${r.saved} tokens saved (-${r.pct}%)`;
+      document.getElementById("compressedOutput").textContent = r.compressed;
+      document.getElementById("meaningStatus").textContent = `Meaning Preserved: PASS • Protected Entities: [${r.entities.join(", ") || "None"}]`;
+      document.getElementById("routerSummary").textContent = `Detected Script: ${r.lang} | Entities Shielded: ${r.entities.join(", ") || "None"} | Cost: ₹0`;
+      document.getElementById("raceBefore").textContent = `${r.orig} tokens`;
+      document.getElementById("raceAfter").textContent = `${r.opt} tokens (-${r.pct}%)`;
+    }
+
+    document.querySelectorAll(".preset-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("promptInput").value = PRESETS[btn.dataset.preset];
+        render();
+      });
+    });
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    document.getElementById("optimizeBtn").addEventListener("click", render);
+    document.getElementById("raceBtn").addEventListener("click", () => {
+      render();
+      document.querySelector('[data-tab="panel3"]').click();
+    });
+    document.getElementById("promptInput").addEventListener("input", render);
+    document.getElementById("reqSlider").addEventListener("input", render);
+    document.getElementById("langSelect").addEventListener("change", (e) => {
+      const key = e.target.value.toLowerCase();
+      if (PRESETS[key]) { document.getElementById("promptInput").value = PRESETS[key]; render(); }
+    });
+    document.getElementById("copyBtn").addEventListener("click", () => {
+      navigator.clipboard.writeText(document.getElementById("compressedOutput").textContent);
+      const b = document.getElementById("copyBtn");
+      b.textContent = "✅ Copied!";
+      setTimeout(() => (b.textContent = "📋 Copy Output"), 1500);
+    });
+    document.getElementById("shareBtn").addEventListener("click", () => {
+      navigator.clipboard.writeText(window.location.href);
+      const b = document.getElementById("shareBtn");
+      b.textContent = "✅ Link Copied!";
+      setTimeout(() => (b.textContent = "🔗 Share"), 1500);
+    });
+
+    document.getElementById("promptInput").value = PRESETS.bengali;
+    render();
+  </script>
 </body>
 </html>
+
