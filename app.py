@@ -209,58 +209,48 @@ def query_qwen(prompt):
     if live_reply:
         return live_reply
     return "Your order #4821 is confirmed, GST invoice is generated, and delivery is scheduled tomorrow by 10 AM."
-
-
 def compress_prompt_smart(text, language):
-    """Removes filler phrases, polite padding, and redundant words while keeping meaning."""
+    """Compresses prompts into natural, grammatical short sentences while keeping meaning."""
     cleaned = clean_indic_text(text)
 
     ai_compressed = call_gemini(
-        f"Compress this {language} prompt by removing filler words, politeness padding, and redundant phrasing. "
-        f"Keep the exact original language ({language}) and preserve all core facts/questions. "
-        f"Output ONLY the shortened prompt:\n\n{cleaned}",
+        f"Rewrite this {language} prompt so it is 40% to 60% shorter, natural, and grammatically complete. "
+        f"Keep the exact language ({language}) and preserve every core fact, name, or request. "
+        f"Output ONLY the rewritten prompt:\n\n{cleaned}",
         max_tokens=100
     )
     if ai_compressed and len(ai_compressed) < len(cleaned):
         return ai_compressed
 
-    english_fillers = [
-        r"\bi would really appreciate it if you could please\b",
-        r"\bcould you please\b",
-        r"\bcan you please\b",
-        r"\bi want you to\b",
-        r"\bplease\b",
-        r"\bkindly\b",
-        r"\bin a detailed manner\b",
-        r"\bthe concept of\b",
-        r"\bto me\b",
-        r"\bthat would help me understand it better\b",
-        r"\band also give me some\b",
-        r"\bbasically\b",
-        r"\bactually\b"
-    ]
-    indic_fillers = [
-        r"ದಯವಿಟ್ಟು\s*", r"ನನಗೆ\s*ತಿಳಿಸಿ\s*", r"ವಿವರವಾಗಿ\s*",
-        r"कृपया\s*", r"मुझे\s*बताएं\s*कि\s*", r"विस्तार\s*से\s*",
-        r"దయచేసి\s*", r"నాకు\s*తెలియజేయండి\s*",
-        r"দয়া\s*করে\s*", r"আমাকে\s*বলুন\s*"
+    replacements = [
+        (r"\bi would really appreciate it if you could please\b", ""),
+        (r"\bcould you please\b", ""),
+        (r"\bcan you please\b", ""),
+        (r"\bi am wanting to\b", "I want to"),
+        (r"\bi want you to\b", ""),
+        (r"\bin a detailed manner\b", "clearly"),
+        (r"\bthe concept of\b", ""),
+        (r"\bthat would help me understand it better\b", ""),
+        (r"\band also give me some\b", "with"),
+        (r"\bplease\b", ""),
+        (r"\bkindly\b", ""),
+        (r"\bbasically\b", ""),
+        (r"\bactually\b", ""),
+        (r"(.)\1{2,}", r"\1")
     ]
 
     result = cleaned
-    for pattern in english_fillers:
-        result = re.sub(pattern, " ", result, flags=re.IGNORECASE)
-    for pattern in indic_fillers:
-        result = re.sub(pattern, " ", result)
+    for pattern, repl in replacements:
+        result = re.sub(pattern, repl, result, flags=re.IGNORECASE)
 
+    result = re.sub(r"^(hi|hello|hey)[,!.\s]+", "", result, flags=re.IGNORECASE)
     result = re.sub(r"\s+([?.!,])", r"\1", result)
     result = re.sub(r"\s+", " ", result).strip()
+
     if result:
         result = result.upper() + result[1:]
-
-    if len(legacy_encoding.encode(result)) >= len(legacy_encoding.encode(cleaned)):
-        words = cleaned.split()
-        if len(words) > 4:
-            result = " ".join(w for w in words if len(w) > 2)
+        if result[-1] not in ".!?":
+            result += "."
 
     return result if result else cleaned
 
