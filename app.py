@@ -7,17 +7,17 @@ import os
 import re
 from difflib import SequenceMatcher
 
-app = Flask(__name__, template_folder=".", static_folder=".", static_url_path="")
+app = Flask(__name__)
 
 # Tokenizers: Legacy high-Indic-tax vs. Modern multilingual tokenizer
 legacy_encoding = tiktoken.get_encoding("cl100k_base")
 optimized_encoding = tiktoken.get_encoding("o200k_base")
 
-DATASET_PATH = "samples.json"
+DATASET_PATH = os.path.join("datasets", "samples.json")
 
-# Reads GROQ_API_KEY from Render Environment Variables
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-GROQ_URL = "https://groq.com"
+# Reads GEMINI_API_KEY safely from environment variables (set in Render or terminal)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_URL = "https://googleapis.com"
 
 NLLB_LANG_CODES = {
     "Kannada": "kan_Knda",
@@ -142,28 +142,27 @@ def check_semantic_cache(english_query):
     return None, 0.0
 
 
-def call_gemini(prompt, max_tokens=250):
-    """Calls free Groq Llama-3.1-8B for ultra-fast translation, compression, and reasoning."""
-    if not GROQ_API_KEY or not GROQ_API_KEY.startswith("gsk_"):
+def call_gemini(prompt, max_tokens=160):
+    """Calls Gemini 2.5 Flash for real translation, prompt compression, and reasoning."""
+    if not GEMINI_API_KEY or not GEMINI_API_KEY.startswith("AIza"):
         return None
     try:
-        res = requests.post(
-            GROQ_URL,
-            headers={
-                "Authorization": f"Bearer {GROQ_API_KEY}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "llama-3.1-8b-instant",
-                "messages": [{"role": "user", "content": prompt}],
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
                 "temperature": 0.2,
-                "max_tokens": max_tokens
-            },
+                "maxOutputTokens": max_tokens
+            }
+        }
+        res = requests.post(
+            f"{GEMINI_URL}?key={GEMINI_API_KEY}",
+            headers={"Content-Type": "application/json"},
+            json=payload,
             timeout=10
         )
         if res.status_code == 200:
             data = res.json()
-            return data["choices"][0]["message"]["content"].strip()
+            return data["candidates"]["content"]["parts"]["text"].strip()
     except Exception:
         pass
     return None
@@ -187,12 +186,12 @@ def translate_nllb(text, src_lang, tgt_lang, preserve_terms=None):
 
     translated = call_gemini(
         f"Translate the following text accurately from {src_name} to {tgt_name}. "
-        f"Keep any __TERM0__ style tags untouched. Output ONLY the translated text:\n\n{working_text}"
+        f"Keep any __TERM0__ style tags untouched. Output ONLY the translated text, nothing else:\n\n{working_text}"
     )
 
     if not translated:
         if tgt_lang == "eng_Latn":
-            translated = PARALLEL_SENTENCES["English"] if text.strip() in PARALLEL_SENTENCES.values() else f"English Pivot: {working_text}"
+            translated = MOCK_TRANSLATIONS["eng_Latn"].get(src_name, "Check order #4821 and EMI/GST details.")
         else:
             translated = MOCK_TRANSLATIONS.get(tgt_lang, "Your order #4821 is confirmed and GST invoice is ready.")
 
@@ -204,7 +203,7 @@ def translate_nllb(text, src_lang, tgt_lang, preserve_terms=None):
 
 def query_qwen(prompt):
     live_reply = call_gemini(
-        f"Answer this user query clearly and concisely in 1-2 sentences:\n\n{prompt}"
+        f"Answer this customer/user query clearly and concisely in 1-2 sentences:\n\n{prompt}"
     )
     if live_reply:
         return live_reply
@@ -212,68 +211,55 @@ def query_qwen(prompt):
 
 
 def compress_prompt_smart(text, language):
-    """Fixes stretched words & grammar while compressing any prompt or run-on paragraph by 40-70%."""
+    """Removes filler phrases, polite padding, and redundant words while keeping meaning."""
     cleaned = clean_indic_text(text)
 
     ai_compressed = call_gemini(
-        f"Rewrite this {language} prompt: fix stretched words ('hiiiiii' -> 'Hi') and grammar errors, "
-        f"remove filler and redundancy, and compress it by 50-70% into a crisp, natural, grammatical prompt "
-        f"while preserving every core fact, name, and intent. Output ONLY the optimized prompt:\n\n{cleaned}",
-        max_tokens=150
+        f"Compress this {language} prompt by removing filler words, politeness padding, and redundant phrasing. "
+        f"Keep the exact original language ({language}) and preserve all core facts/questions. "
+        f"Output ONLY the shortened prompt:\n\n{cleaned}",
+        max_tokens=100
     )
     if ai_compressed and len(ai_compressed) < len(cleaned):
         return ai_compressed
 
-    result = re.sub(r"(.)\1{2,}", r"\1", cleaned)
-
-    replacements = [
-        (r"^(hi|hello|hey)[,!.\s]+", ""),
-        (r"\bi really need your help\b", "Please help"),
-        (r"\bi would really appreciate it if you could please\b", ""),
-        (r"\bcould you please\b", ""),
-        (r"\bcan you please\b", ""),
-        (r"\bi am wanting to\b", "I want to"),
-        (r"\bi want you to\b", ""),
-        (r"\bsummarize this article for me and give me the main points\b", "Summarize the main points"),
-        (r"\ba bit\b", ""),
-        (r"\bkind of\b", ""),
-        (r"\bsomewhat\b", ""),
-        (r"\breally\b", ""),
-        (r"\bbasically\b", ""),
-        (r"\bactually\b", ""),
-        (r"\bplease\b", ""),
-        (r"\bkindly\b", ""),
-        (r"\bin a detailed manner\b", "clearly"),
-        (r"\bthe concept of\b", ""),
-        (r"\bthat would help me understand it better\b", ""),
-        (r"\band also give me some\b", "with"),
-        (r"\bi\b", "I")
+    english_fillers = [
+        r"\bi would really appreciate it if you could please\b",
+        r"\bcould you please\b",
+        r"\bcan you please\b",
+        r"\bi want you to\b",
+        r"\bplease\b",
+        r"\bkindly\b",
+        r"\bin a detailed manner\b",
+        r"\bthe concept of\b",
+        r"\bto me\b",
+        r"\bthat would help me understand it better\b",
+        r"\band also give me some\b",
+        r"\bbasically\b",
+        r"\bactually\b"
     ]
-    for pattern, repl in replacements:
-        result = re.sub(pattern, repl, result, flags=re.IGNORECASE)
+    indic_fillers = [
+        r"ದಯವಿಟ್ಟು\s*", r"ನನಗೆ\s*ತಿಳಿಸಿ\s*", r"ವಿವರವಾಗಿ\s*",
+        r"कृपया\s*", r"मुझे\s*बताएं\s*कि\s*", r"विस्तार\s*से\s*",
+        r"దయచేసి\s*", r"నాకు\s*తెలియజేయండి\s*",
+        r"দয়া\s*করে\s*", r"আমাকে\s*বলুন\s*"
+    ]
+
+    result = cleaned
+    for pattern in english_fillers:
+        result = re.sub(pattern, " ", result, flags=re.IGNORECASE)
+    for pattern in indic_fillers:
+        result = re.sub(pattern, " ", result)
 
     result = re.sub(r"\s+([?.!,])", r"\1", result)
     result = re.sub(r"\s+", " ", result).strip()
-
-    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', result) if s.strip()]
-    if len(sentences) > 2:
-        result = f"{sentences[0]} {sentences[-1]}"
-    elif len(result.split()) > 35:
-        clauses = [c.strip() for c in re.split(r',\s*(?:so|while|though|and|since|because)\s+|,\s+', result) if len(c.split()) >= 4]
-        if len(clauses) >= 3:
-            result = f"{clauses[0]}. {clauses[len(clauses)//2].capitalize()}. {clauses[-1].capitalize()}"
-        else:
-            words = result.split()
-            result = " ".join(words[:18]) + " — " + " ".join(words[-14:])
-()}."
-        else:
-            words = result.split()
-            result = " ".join(words[:18]) + " — " + " ".join(words[-14:])
-
     if result:
-        result = result[:1].upper() + result[1:]
-        if result[-1] not in ".!?":
-            result += "."
+        result = result.upper() + result[1:]
+
+    if len(legacy_encoding.encode(result)) >= len(legacy_encoding.encode(cleaned)):
+        words = cleaned.split()
+        if len(words) > 4:
+            result = " ".join(w for w in words if len(w) > 2)
 
     return result if result else cleaned
 
@@ -332,6 +318,7 @@ def analyze():
     decision = smart_router_decide(cleaned_text, language, tax_multiplier)
     protected_entities = extract_protected_entities(cleaned_text)
 
+    # 5-Language Cross-Comparison Scanner
     is_default_preset = any(text.strip() == v.strip() for v in PARALLEL_SENTENCES.values())
     en_base_count = len(legacy_encoding.encode(PARALLEL_SENTENCES["English"])) if is_default_preset else baseline_tokens
 
@@ -413,7 +400,7 @@ def optimize_prompt():
 
 @app.route("/race", methods=["POST"])
 def race():
-    """Runs Native Script vs. TokenSathi Smart Router (Groq + Semantic Cache)."""
+    """Runs Native Script vs. TokenSathi Smart Router (Gemini + Semantic Cache)."""
     data = request.json or {}
     text = clean_indic_text(data.get("text", ""))
     language = data.get("language", "Kannada")
@@ -457,7 +444,7 @@ def race():
             preserve_terms=extract_protected_entities(english_reply) if hybrid_mode else []
         )
         smart_total_tokens = en_in_tokens + en_out_tokens
-        route_used = "Groq Llama-3.1 English Pivot + Hybrid Entity Shield"
+        route_used = "Gemini-2.5-Flash English Pivot + Hybrid Entity Shield"
         quality_score = 94.5
 
         SEMANTIC_CACHE[english_prompt.lower().strip()] = {
@@ -497,5 +484,3 @@ def race():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
-
-    if result:
