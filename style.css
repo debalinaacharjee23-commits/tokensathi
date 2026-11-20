@@ -565,4 +565,120 @@ input[type="range"] {
   color: var(--text-muted);
   font-weight: 600;
 }
+.roi-box strong {
+font-family: "Outfit", sans-serif;
+font-size: 24px;
+color: var(--text-main);
+}
+/* Optimizer & Race Boxes */
+.card-head {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 10px;
+margin-bottom: 14px;
+}
+.head-right {
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.badge-soft,
+.badge-green {
+font-size: 12px;
+padding: 5px 12px;
+border-radius: var(--radius-pill);
+font-weight: 600;
+}
+.badge-soft {
+background: #f3f0f7;
+color: var(--text-muted);
+}
+.badge-green {
+background: var(--matcha-soft);
+color: #15803d;
+}
+.prompt-display {
+background: #fff;
+border: 1.5px solid var(--border-soft);
+border-radius: var(--radius-lg);
+padding: 16px;
+min-height: 110px;
+font-size: 15px;
+line-height: 1.6;
+}
+.matcha-border {
+border-color: #86efac;
+}
+.meaning-bar {
+margin-top: 12px;
+font-size: 13px;
+color: var(--text-muted);
+}
+.route-pill {
+background: var(--text-main);
+color: #fff;
+padding: 6px 14px;
+border-radius: var(--radius-pill);
+font-size: 12px;
+font-weight: 700;
+}
+.risk-row {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+margin-top: 10px;
+}
+.risk-tag {
+background: #fef3c7;
+color: #92400e;
+padding: 5px 12px;
+border-radius: var(--radius-pill);
+font-size: 12px;
+font-weight: 600;
+}
+.race-box {
+background: #fff;
+border: 1.5px solid var(--border-soft);
+border-radius: var(--radius-lg);
+padding: 18px;
+}
+.race-box.winner {
+background: #f6fdf9;
+border-color: #86efac;
+}
+.race-metrics {
+display: flex;
+flex-wrap: wrap;
+gap: 12px;
+font-size: 13px;
+margin: 10px 0;
+color: var(--text-muted);
+}
+.pivot-tag {
+font-size: 12px;
+background: var(--lavender-soft);
+color: #5b21b6;
+padding: 4px 10px;
+border-radius: 8px;
+display: inline-block;
+margin-bottom: 8px;
+}
+.reply-preview {
+font-size: 14px;
+color: var(--text-main);
+line-height: 1.5;
+margin: 8px 0 0;
+}
+.batch-box {
+margin-top: 20px;
+padding-top: 18px;
+border-top: 1.5px dashed var(--border-soft);
+}
+footer {
+text-align: center;
+padding: 24px;
+color: var(--text-muted);
+font-size: 13px;
+}
 
