@@ -1,232 +1,235 @@
-from flask import Flask, render_template, request, jsonify
-import tiktoken
-import requests
 import json
-import time
 import os
 import re
+import time
 from difflib import SequenceMatcher
 
-app = Flask(__name__, template_folder=".", static_folder=".", static_url_path="")
+import requests
+import tiktoken
+from flask import Flask, jsonify, render_template, request
 
+# index.html must live in ./templates/ (and any css/js in ./static/)
+app = Flask(__name__)
 
-# Tokenizers: Legacy high-Indic-tax vs. Modern multilingual tokenizer
+# Tokenizers: older cl100k (GPT-4) vs newer o200k (GPT-4o)
 legacy_encoding = tiktoken.get_encoding("cl100k_base")
 optimized_encoding = tiktoken.get_encoding("o200k_base")
 
 DATASET_PATH = "samples.json"
 
-# Reads GEMINI_API_KEY safely from environment variables (set in Render or terminal)
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-GROQ_URL = "https://groq.com"
+# Set GROQ_API_KEY in your environment (terminal or Render dashboard)
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "").strip()
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_MODEL = "llama-3.1-8b-instant"
 
+# Assumed price used for every cost figure (INR per 1M tokens). Change as needed.
+RATE_INR_PER_1M = 210
 
 NLLB_LANG_CODES = {
     "Kannada": "kan_Knda",
     "Hindi": "hin_Deva",
     "Bengali": "ben_Beng",
     "Telugu": "tel_Telu",
-    "English": "eng_Latn"
+    "Tamil": "tam_Taml",
+    "English": "eng_Latn",
 }
-
 CODE_TO_LANG = {v: k for k, v in NLLB_LANG_CODES.items()}
 
-LANGUAGE_MULTIPLIERS = {
-    "Kannada": 12.0,
-    "Telugu": 9.5,
-    "Bengali": 6.2,
-    "Hindi": 4.1,
-    "English": 1.0
-}
-
+# Real parallel sentences (the same meaning in each language)
 PARALLEL_SENTENCES = {
     "English": "Where is my order #4821 and what are my EMI payment details?",
     "Kannada": "ನನ್ನ ಆರ್ಡರ್ #4821 ಎಲ್ಲಿದೆ ಮತ್ತು ನನ್ನ EMI ಪಾವತಿ ವಿವರಗಳನ್ನು ತಿಳಿಸಿ?",
     "Hindi": "मेरा ऑर्डर #4821 कहाँ है और मेरी EMI भुगतान का विवरण क्या है?",
     "Telugu": "నా ఆర్డర్ #4821 ఎక్కడ ఉంది మరియు నా EMI చెల్లింపు వివరాలు ఏమిటి?",
-    "Bengali": "আমার অর্ডার #4821 কোথায় এবং আমার EMI পেমেন্টের বিবরণ কী?"
+    "Bengali": "আমার অর্ডার #4821 কোথায় এবং আমার EMI পেমেন্টের বিবরণ কী?",
 }
 
-MOCK_TRANSLATIONS = {
-    "eng_Latn": PARALLEL_SENTENCES,
-    "kan_Knda": "ನಿಮ್ಮ ಆರ್ಡರ್ #4821 ದೃಢೀಕರಿಸಲ್ಪಟ್ಟಿದೆ, GST ಇನ್‌ವಾಯ್ಸ್ ಸಿದ್ಧವಾಗಿದೆ ಮತ್ತು ನಾಳೆ ಬೆಳಿಗ್ಗೆ 10 ಗಂಟೆಗೆ ವಿತರಿಸಲಾಗುವುದು.",
-    "hin_Deva": "आपका ऑर्डर #4821 कन्फर्म हो गया है, GST इनवॉइस बन गया है और कल सुबह 10 बजे तक डिलीवरी हो जाएगी।",
-    "tel_Telu": "మీ ఆర్డర్ #4821 నిర్ధారించబడింది, GST ఇన్‌వాయిస్ సిద్ధమైంది మరియు రేపు ఉదయం 10 గంటలకు డెలివరీ అవుతుంది.",
-    "ben_Beng": "আপনার অর্ডার #4821 নিশ্চিত করা হয়েছে, GST ইনভয়েস তৈরি হয়েছে এবং আগামীকাল সকাল ১০টার মধ্যে ডেলিভারি হবে।"
-}
+# Each entry: {"key": cached english prompt, "english_reply", "final_reply", "core_tokens"}
+SEMANTIC_CACHE = []
 
-SEMANTIC_CACHE = {}
+
+# ----------------------------------------------------------------- helpers
+def count_tokens(text):
+    return len(legacy_encoding.encode(text))
+
+
+def llm_available():
+    return bool(GROQ_API_KEY) and GROQ_API_KEY.startswith("gsk_")
+
+
+def detect_script_language(text, fallback_lang="English"):
+    ranges = {
+        "Kannada": ("\u0C80", "\u0CFF"),
+        "Bengali": ("\u0980", "\u09FF"),
+        "Hindi": ("\u0900", "\u097F"),
+        "Telugu": ("\u0C00", "\u0C7F"),
+        "Tamil": ("\u0B80", "\u0BFF"),
+    }
+    counts = {
+        lang: sum(1 for c in text if lo <= c <= hi)
+        for lang, (lo, hi) in ranges.items()
+    }
+    detected = max(counts, key=counts.get)
+    if counts[detected] > 0:
+        return detected
+    # Latin-only text: trust the caller (could be romanised Kannada, etc.)
+    return fallback_lang if fallback_lang in NLLB_LANG_CODES else "English"
 
 
 def load_samples():
     if os.path.exists(DATASET_PATH):
-        with open(DATASET_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(DATASET_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (OSError, json.JSONDecodeError) as e:
+            print("samples.json error:", e)
     return {}
 
 
 def clean_indic_text(text):
-    cleaned = re.sub(r'[\u200B-\u200D\uFEFF]', '', text)
-    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
-    return cleaned
+    # Keep ZWJ/ZWNJ (\u200C, \u200D): Indic scripts need them for conjuncts.
+    cleaned = re.sub(r"[\u200B\uFEFF]", "", text)
+    return re.sub(r"\s+", " ", cleaned).strip()
 
 
 def extract_protected_entities(text):
-    entities = re.findall(r'\b(?:[A-Z]{2,}|[A-Za-z]+\d+|\d+(?:\.\d+)?%?|OTP|EMI|API|UPI|GST|PDF|URL)\b', text)
-    return list(dict.fromkeys(entities))
+    pattern = (
+        r"(?<![A-Za-z0-9])(?:\d+(?:\.\d+)?%|[A-Z]{2,}|[A-Za-z]+\d+|\d+(?:\.\d+)?)(?![A-Za-z0-9])"
+    )
+    return list(dict.fromkeys(re.findall(pattern, text)))
+
+
+def numbers_in(text):
+    return re.findall(r"\d+", text)
 
 
 def analyze_failure_risks(text, language):
     risks = []
-    if re.search(r'[{};=<>]|def |import |function |SELECT |http', text):
-        risks.append("Code/Syntax detected: Translation can corrupt brackets or keywords.")
+    if re.search(r"[{};]|=>|\bdef \w+\(|\bimport \w+|\bfunction\s*\(|\bSELECT\s|https?://", text):
+        risks.append("Code/Syntax detected: translation can corrupt brackets or keywords.")
     ascii_chars = sum(1 for c in text if ord(c) < 128 and c.isalpha())
     total_alpha = max(1, sum(1 for c in text if c.isalpha()))
     if language != "English" and (ascii_chars / total_alpha) > 0.45:
-        risks.append("Heavy Code-Mixing (Hinglish/Kanglish): Romanised words may be over-translated.")
+        risks.append("Heavy code-mixing (Hinglish/Kanglish): romanised words may be mistranslated.")
     if len(text.split()) <= 2:
-        risks.append("Ultra-short query: Translation overhead may outweigh token savings.")
+        risks.append("Ultra-short query: translation overhead may outweigh token savings.")
     return risks
 
 
 def smart_router_decide(text, language, tax_multiplier):
+    """Simple rule-based router. Rules are heuristics, not measured accuracies."""
     risks = analyze_failure_risks(text, language)
     has_code = any("Code/Syntax" in r for r in risks)
-    is_codemixed = any("Code-Mixing" in r for r in risks)
+    is_codemixed = any("code-mixing" in r for r in risks)
+
+    def out(route, reason):
+        return {"route": route, "confidence": "rule-based", "reason": reason, "risks": risks}
 
     if language == "English":
-        return {
-            "route": "NATIVE_DIRECT",
-            "confidence": "99%",
-            "reason": "Input is already in English (1.0x baseline) — zero translation needed.",
-            "risks": risks
-        }
+        return out("NATIVE_DIRECT", "Input is already English, no translation needed.")
     if has_code:
-        return {
-            "route": "NATIVE_DIRECT",
-            "confidence": "96%",
-            "reason": "Code or technical syntax detected — routing directly to LLM to protect formatting.",
-            "risks": risks
-        }
+        return out("NATIVE_DIRECT", "Code/technical syntax detected, send directly to protect formatting.")
     if is_codemixed:
-        return {
-            "route": "HYBRID_DIRECT",
-            "confidence": "89%",
-            "reason": "Heavy Romanised/Code-mixed text detected — direct multilingual inference avoids transliteration errors.",
-            "risks": risks
-        }
+        return out("HYBRID_DIRECT", "Heavy romanised/code-mixed text, direct inference avoids transliteration errors.")
     if tax_multiplier < 1.6:
-        return {
-            "route": "NATIVE_DIRECT",
-            "confidence": "91%",
-            "reason": f"Low token multiplier ({tax_multiplier}x) — direct path saves round-trip translation latency.",
-            "risks": risks
-        }
-    return {
-        "route": "TRANSLATE_ENGLISH_ROUTE",
-        "confidence": "95%",
-        "reason": f"High Indic Token Tax ({tax_multiplier}x) — English pivot routing cuts token cost >50%.",
-        "risks": risks
-    }
+        return out("NATIVE_DIRECT", f"Low token multiplier ({tax_multiplier}x), the pivot is unlikely to pay off.")
+    return out(
+        "TRANSLATE_ENGLISH_ROUTE",
+        f"High token multiplier ({tax_multiplier}x), an English pivot may reduce cost "
+        f"(see /race for the measured result).",
+    )
 
 
 def check_semantic_cache(english_query):
+    """String-similarity cache. Refuses a hit if the numbers differ (e.g. #4821 vs #4822)."""
     norm_q = english_query.lower().strip()
-    best_match = None
-    best_score = 0.0
-    for cached_q, cached_data in SEMANTIC_CACHE.items():
-        similarity = SequenceMatcher(None, norm_q, cached_q).ratio()
-        if similarity > best_score:
-            best_score = similarity
-            best_match = cached_data
-    if best_score >= 0.80 and best_match:
-        return best_match, round(best_score * 100, 1)
+    best, best_score = None, 0.0
+    for entry in SEMANTIC_CACHE:
+        score = SequenceMatcher(None, norm_q, entry["key"]).ratio()
+        if score > best_score:
+            best, best_score = entry, score
+    if best and best_score >= 0.80 and numbers_in(norm_q) == numbers_in(best["key"]):
+        return best, round(best_score * 100, 1)
     return None, 0.0
-def call_gemini(prompt, max_tokens=250):
-    """Calls free Groq Llama-3.1-8B for ultra-fast translation, compression, and reasoning."""
-    if not GROQ_API_KEY or not GROQ_API_KEY.startswith("gsk_"):
+
+
+# --------------------------------------------------------------------- LLM
+def call_llm(prompt, max_tokens=250):
+    """Calls Groq (Llama 3.1 8B). Returns text, or None on any failure."""
+    if not llm_available():
         return None
     try:
         res = requests.post(
             GROQ_URL,
             headers={
                 "Authorization": f"Bearer {GROQ_API_KEY}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             },
             json={
-                "model": "llama-3.1-8b-instant",
+                "model": GROQ_MODEL,
                 "messages": [{"role": "user", "content": prompt}],
                 "temperature": 0.2,
-                "max_tokens": max_tokens
+                "max_tokens": max_tokens,
             },
-            timeout=10
+            timeout=15,
         )
         if res.status_code == 200:
-            data = res.json()
-            return data["choices"][0]["message"]["content"].strip()
-    except Exception:
-        pass
+            return res.json()["choices"][0]["message"]["content"].strip()
+        print("LLM HTTP error:", res.status_code, res.text[:200])
+    except Exception as e:
+        print("LLM error:", e)
     return None
 
 
-def translate_nllb(text, src_lang, tgt_lang, preserve_terms=None):
+def translate_llm(text, src_lang, tgt_lang, preserve_terms=None):
+    """Translate with the LLM. Returns None if the LLM is unavailable (no fake output)."""
     if src_lang == tgt_lang:
         return text
 
     working_text = text
     placeholders = {}
-    if preserve_terms:
-        for idx, term in enumerate(preserve_terms):
-            tag = f"__TERM{idx}__"
-            if term in working_text:
-                placeholders[tag] = term
-                working_text = working_text.replace(term, tag)
+    for idx, term in enumerate(preserve_terms or []):
+        tag = f"__TERM{idx}__"
+        if term in working_text:
+            placeholders[tag] = term
+            working_text = working_text.replace(term, tag)
 
     src_name = CODE_TO_LANG.get(src_lang, src_lang)
     tgt_name = CODE_TO_LANG.get(tgt_lang, tgt_lang)
 
-    translated = call_gemini(
+    translated = call_llm(
         f"Translate the following text accurately from {src_name} to {tgt_name}. "
-        f"Keep any __TERM0__ style tags untouched. Output ONLY the translated text, nothing else:\n\n{working_text}"
+        f"Keep any __TERM0__ style tags untouched. Output ONLY the translated text:\n\n{working_text}"
     )
-
     if not translated:
-        if tgt_lang == "eng_Latn":
-            translated = PARALLEL_SENTENCES["English"] if text.strip() in PARALLEL_SENTENCES.values() else f"English Pivot: {working_text}"
-
-        else:
-            translated = MOCK_TRANSLATIONS.get(tgt_lang, "Your order #4821 is confirmed and GST invoice is ready.")
-
-    for tag, original_term in placeholders.items():
-        translated = translated.replace(tag, original_term)
-
+        return None
+    for tag, original in placeholders.items():
+        translated = translated.replace(tag, original)
     return translated
 
 
-def query_qwen(prompt):
-    live_reply = call_gemini(
-        f"Answer this customer/user query clearly and concisely in 1-2 sentences:\n\n{prompt}"
+def query_llm(prompt, reply_language):
+    return call_llm(
+        f"Answer this customer query clearly and concisely in 1-2 sentences. "
+        f"Reply in {reply_language}:\n\n{prompt}"
     )
-    if live_reply:
-        return live_reply
-    return "Your order #4821 is confirmed, GST invoice is generated, and delivery is scheduled tomorrow by 10 AM."
-def compress_prompt_smart(text, language):
-    """Fixes stretched words & grammar while compressing any prompt or run-on paragraph by 40-70%."""
+
+
+def compress_prompt_smart(text):
+    """Shortens a prompt. Uses the LLM if available, else simple filler removal."""
     cleaned = clean_indic_text(text)
+    before = count_tokens(cleaned)
 
-    ai_compressed = call_gemini(
-        f"Rewrite this {language} prompt: fix stretched words ('hiiiiii' -> 'Hi') and grammar errors, "
-        f"remove filler and redundancy, and compress it by 50-70% into a crisp, natural, grammatical prompt "
-        f"while preserving every core fact, name, and intent. Output ONLY the optimized prompt:\n\n{cleaned}",
-        max_tokens=120
+    ai = call_llm(
+        "Rewrite this prompt in the SAME language: fix stretched words and grammar, remove filler "
+        "and redundancy, keep every fact, name, number and intent. Output ONLY the rewritten prompt:\n\n"
+        + cleaned,
+        max_tokens=220,
     )
-    if ai_compressed and len(ai_compressed) < len(cleaned):
-        return ai_compressed
+    if ai and count_tokens(ai) < before:
+        return ai
 
-    # 1. Fix stretched letters ("hiiiiii" -> "hi")
-    result = re.sub(r"(.)\1{2,}", r"\1", cleaned)
-
-    # 2. Strip conversational filler & wordy phrasing
+    result = re.sub(r"([A-Za-z])\1{2,}", r"\1", cleaned)  # hiiiii -> hi (letters only)
     replacements = [
         (r"^(hi|hello|hey)[,!.\s]+", ""),
         (r"\bi really need your help\b", "Please help"),
@@ -248,33 +251,21 @@ def compress_prompt_smart(text, language):
         (r"\bthe concept of\b", ""),
         (r"\bthat would help me understand it better\b", ""),
         (r"\band also give me some\b", "with"),
-        (r"\bi\b", "I")
+        (r"\bi\b", "I"),
     ]
     for pattern, repl in replacements:
         result = re.sub(pattern, repl, result, flags=re.IGNORECASE)
 
     result = re.sub(r"\s+([?.!,])", r"\1", result)
     result = re.sub(r"\s+", " ", result).strip()
-
-    # 3. Handle multi-sentence OR long run-on paragraphs (>35 words) cleanly
-    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', result) if s.strip()]
-    if len(sentences) > 2:
-        result = f"{sentences[0]} {sentences[-1]}"
-    elif len(result.split()) > 35:
-        clauses = [c.strip() for c in re.split(r',\s*(?:so|while|though|and|since|because)\s+|,\s+', result) if len(c.split()) >= 4]
-        if len(clauses) >= 3:
-            result = f"{clauses[0]}. {clauses[len(clauses)//2].capitalize()}. {clauses[-1].capitalize()}"
-        else:
-            words = result.split()
-            result = " ".join(words[:18]) + " — " + " ".join(words[-14:])
-
     if result:
         result = result[:1].upper() + result[1:]
-        if result[-1] not in ".!?":
+        if result[-1] not in ".!?।":
             result += "."
+    return result or cleaned
 
-    return result if result else cleaned
 
+# ------------------------------------------------------------------ routes
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -287,13 +278,17 @@ def get_samples():
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     text = data.get("text", "")
-    language = data.get("language", "Kannada")
-    daily_requests = int(data.get("daily_requests", 10000))
-
     if not text.strip():
         return jsonify({"error": "Please enter text"}), 400
+
+    language = detect_script_language(text, data.get("language", "English"))
+
+    try:
+        daily_requests = max(1, int(data.get("daily_requests", 10000)))
+    except (TypeError, ValueError):
+        daily_requests = 10000
 
     legacy_tokens = legacy_encoding.encode(text)
     legacy_count = len(legacy_tokens)
@@ -304,24 +299,29 @@ def analyze():
 
     words = len(cleaned_text.split())
     tokens_saved = max(0, legacy_count - optimized_count)
-    savings_percent = round((tokens_saved / legacy_count) * 100) if legacy_count > 0 else 0
+    savings_percent = round(tokens_saved / legacy_count * 100) if legacy_count else 0
 
-    legacy_cost_inr = round((legacy_count / 1_000_000) * 210 * 1_000_000, 2)
-    optimized_cost_inr = round((optimized_count / 1_000_000) * 210 * 1_000_000, 2)
-    money_saved_inr = round(legacy_cost_inr - optimized_cost_inr, 2)
+    # NOTE: "cost_1m_inr" is the cost of THIS request (kept as key name for the frontend)
+    legacy_cost_inr = round(legacy_count / 1_000_000 * RATE_INR_PER_1M, 6)
+    optimized_cost_inr = round(optimized_count / 1_000_000 * RATE_INR_PER_1M, 6)
+    money_saved_inr = round(legacy_cost_inr - optimized_cost_inr, 6)
 
-    monthly_native_inr = round(((legacy_count * daily_requests * 30) / 1_000_000) * 210, 2)
-    monthly_smart_inr = round(((optimized_count * daily_requests * 30) / 1_000_000) * 210, 2)
+    monthly_native_inr = round(legacy_count * daily_requests * 30 / 1_000_000 * RATE_INR_PER_1M, 2)
+    monthly_smart_inr = round(optimized_count * daily_requests * 30 / 1_000_000 * RATE_INR_PER_1M, 2)
     monthly_saved_inr = round(max(0.0, monthly_native_inr - monthly_smart_inr), 2)
 
+    # English baseline: measured if this is a known sample, otherwise an estimate
     samples = load_samples()
-    if language in samples and text.strip() == samples[language]["text"].strip():
-        baseline_tokens = samples[language]["english_baseline_tokens"]
+    sample = samples.get(language) or {}
+    if sample.get("text", "").strip() == text.strip() and sample.get("english_baseline_tokens"):
+        baseline_tokens = max(1, sample["english_baseline_tokens"])
+        baseline_is_estimate = False
     else:
         baseline_tokens = max(1, round(words * 1.3))
+        baseline_is_estimate = True
 
     tax_multiplier = round(legacy_count / baseline_tokens, 2)
-    extra_percent = max(0, round(((legacy_count - baseline_tokens) / baseline_tokens) * 100))
+    extra_percent = max(0, round((legacy_count - baseline_tokens) / baseline_tokens * 100))
 
     legacy_pieces = [legacy_encoding.decode([t]) for t in legacy_tokens]
     optimized_pieces = [optimized_encoding.decode([t]) for t in optimized_tokens]
@@ -329,29 +329,18 @@ def analyze():
     decision = smart_router_decide(cleaned_text, language, tax_multiplier)
     protected_entities = extract_protected_entities(cleaned_text)
 
-    # 5-Language Cross-Comparison Scanner
-    is_default_preset = any(text.strip() == v.strip() for v in PARALLEL_SENTENCES.values())
-    en_base_count = len(legacy_encoding.encode(PARALLEL_SENTENCES["English"])) if is_default_preset else baseline_tokens
-
+    # Cross-language table: ALWAYS real token counts of real parallel sentences
+    en_base_count = count_tokens(PARALLEL_SENTENCES["English"])
     scanner_rows = []
-    for lang_name, mult in [("English", 1.0), ("Hindi", 2.1), ("Bengali", 2.6), ("Telugu", 3.1), ("Kannada", 3.7)]:
-        if is_default_preset:
-            sample_txt = PARALLEL_SENTENCES[lang_name]
-            t_count = len(legacy_encoding.encode(sample_txt))
-        elif lang_name == language:
-            sample_txt = cleaned_text
-            t_count = legacy_count
-        else:
-            sample_txt = PARALLEL_SENTENCES[lang_name]
-            t_count = max(en_base_count, round(en_base_count * mult))
-
-        diff_pct = 0 if lang_name == "English" else round(((t_count - en_base_count) / max(1, en_base_count)) * 100)
+    for lang_name, sample_txt in PARALLEL_SENTENCES.items():
+        t_count = count_tokens(sample_txt)
         scanner_rows.append({
             "language": lang_name,
             "sample_text": sample_txt,
             "tokens": t_count,
-            "diff_from_english_pct": diff_pct,
-            "multiplier": round(t_count / max(1, en_base_count), 2)
+            "diff_from_english_pct": 0 if lang_name == "English"
+            else round((t_count - en_base_count) / en_base_count * 100),
+            "multiplier": round(t_count / en_base_count, 2),
         })
 
     return jsonify({
@@ -362,41 +351,45 @@ def analyze():
         "optimized_tokens": optimized_count,
         "tokens_saved": tokens_saved,
         "savings_percent": savings_percent,
-        "cost_1m_inr": legacy_cost_inr,
-        "optimized_cost_inr": optimized_cost_inr,
+        "cost_1m_inr": legacy_cost_inr,          # cost of this request, cl100k
+        "optimized_cost_inr": optimized_cost_inr,  # cost of this request, o200k
         "money_saved_inr": money_saved_inr,
+        "rate_inr_per_1m_tokens": RATE_INR_PER_1M,
         "monthly_roi": {
             "daily_requests": daily_requests,
             "monthly_native_inr": monthly_native_inr,
             "monthly_smart_inr": monthly_smart_inr,
-            "monthly_saved_inr": monthly_saved_inr
+            "monthly_saved_inr": monthly_saved_inr,
         },
         "tax_multiplier": tax_multiplier,
+        "baseline_tokens": baseline_tokens,
+        "baseline_is_estimate": baseline_is_estimate,
         "extra_percent": extra_percent,
         "cleaned_text": cleaned_text,
         "token_pieces": legacy_pieces,
         "optimized_token_pieces": optimized_pieces,
         "protected_entities": protected_entities,
         "router_decision": decision,
-        "scanner_5lang": scanner_rows
+        "scanner_5lang": scanner_rows,
+        "scanner_source": "real parallel sentences, cl100k_base token counts",
     })
 
 
 @app.route("/optimize_prompt", methods=["POST"])
 def optimize_prompt():
-    """AI Prompt Compressor that shrinks tokens while keeping meaning & language."""
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     text = data.get("text", "").strip()
-    language = data.get("language", "English")
-
     if not text:
         return jsonify({"error": "Please enter a prompt to optimize"}), 400
 
-    before_tokens = len(legacy_encoding.encode(text))
-    optimized_text = compress_prompt_smart(text, language)
-    after_tokens = len(legacy_encoding.encode(optimized_text))
+    language = detect_script_language(text, data.get("language", "English"))
+    before_tokens = count_tokens(text)
+    optimized_text = compress_prompt_smart(text)
+    after_tokens = count_tokens(optimized_text)
+    reduction_pct = round(max(0.0, (before_tokens - after_tokens) / max(1, before_tokens) * 100), 1)
 
-    reduction_pct = round(max(0.0, ((before_tokens - after_tokens) / max(1, before_tokens)) * 100), 1)
+    # Real (limited) check: every number/acronym/ID in the original must survive
+    missing = [e for e in extract_protected_entities(text) if e not in optimized_text]
 
     return jsonify({
         "original_prompt": text,
@@ -405,93 +398,117 @@ def optimize_prompt():
         "before_tokens": before_tokens,
         "after_tokens": after_tokens,
         "reduction_pct": reduction_pct,
-        "meaning_preserved": "PASS"
+        "meaning_preserved": "PASS" if not missing else "CHECK",
+        "missing_entities": missing,
+        "used_llm": llm_available(),
     })
 
 
 @app.route("/race", methods=["POST"])
 def race():
-    """Runs Native Script vs. TokenSathi Smart Router (Gemini + Semantic Cache)."""
-    data = request.json or {}
+    """Native-script pipeline vs English-pivot pipeline, all token counts measured."""
+    data = request.get_json(silent=True) or {}
     text = clean_indic_text(data.get("text", ""))
-    language = data.get("language", "Kannada")
-    hybrid_mode = bool(data.get("hybrid_mode", True))
-    src_code = NLLB_LANG_CODES.get(language, "kan_Knda")
-
     if not text:
         return jsonify({"error": "Please enter text"}), 400
+    if not llm_available():
+        return jsonify({"error": "LLM unavailable: set a valid GROQ_API_KEY (starts with gsk_)."}), 503
 
+    language = detect_script_language(text, data.get("language", "English"))
+    hybrid_mode = bool(data.get("hybrid_mode", True))
+    src_code = NLLB_LANG_CODES.get(language, "eng_Latn")
     protected_terms = extract_protected_entities(text) if hybrid_mode else []
 
-    # PATH A: Standard Native Script Pipeline
+    # PATH A: native script, the model answers in the user's language
     t0 = time.perf_counter()
-    native_in_tokens = len(legacy_encoding.encode(text))
-    native_reply = query_qwen(text)
-    multiplier = LANGUAGE_MULTIPLIERS.get(language, 4.1)
-    native_out_tokens = int(len(optimized_encoding.encode(native_reply)) * multiplier)
-    native_total_tokens = native_in_tokens + native_out_tokens
+    native_reply = query_llm(text, language)
+    if not native_reply:
+        return jsonify({"error": "LLM call failed (native path). Check server logs."}), 502
+    native_in = count_tokens(text)
+    native_out = count_tokens(native_reply)
+    native_total = native_in + native_out
     native_latency_ms = round((time.perf_counter() - t0) * 1000, 1)
-    native_cost_inr = round((native_total_tokens / 1_000_000) * 210, 5)
+    native_cost_inr = round(native_total / 1_000_000 * RATE_INR_PER_1M, 6)
 
-    # PATH B: TokenSathi Smart Router + Semantic Cache
+    # PATH B: English pivot + cache
     t1 = time.perf_counter()
-    english_prompt = translate_nllb(text, src_code, "eng_Latn", preserve_terms=protected_terms)
-    cached_hit, sim_score = check_semantic_cache(english_prompt)
+    english_prompt = translate_llm(text, src_code, "eng_Latn", preserve_terms=protected_terms)
+    if not english_prompt:
+        return jsonify({"error": "LLM call failed (translation to English)."}), 502
 
-    if cached_hit:
-        smart_total_tokens = 0
-        english_reply = cached_hit["english_reply"]
-        final_reply = cached_hit["final_reply"]
-        route_used = f"SEMANTIC_CACHE_HIT ({sim_score}% similarity)"
-        quality_score = 99.0
+    cached, sim_score = check_semantic_cache(english_prompt)
+    if cached:
+        cache_hit = True
+        english_reply = cached["english_reply"]
+        final_reply = cached["final_reply"]
+        core_tokens = cached["core_tokens"]
+        route_used = f"SEMANTIC_CACHE_HIT ({sim_score}% string similarity)"
+        overhead_tokens = native_in  # translation of the question still ran
     else:
-        en_in_tokens = len(optimized_encoding.encode(english_prompt))
-        english_reply = query_qwen(english_prompt)
-        en_out_tokens = len(optimized_encoding.encode(english_reply))
-        final_reply = translate_nllb(
-            english_reply,
-            "eng_Latn",
-            src_code,
-            preserve_terms=extract_protected_entities(english_reply) if hybrid_mode else []
+        cache_hit = False
+        english_reply = query_llm(english_prompt, "English")
+        if not english_reply:
+            return jsonify({"error": "LLM call failed (English answer)."}), 502
+        final_reply = translate_llm(
+            english_reply, "eng_Latn", src_code,
+            preserve_terms=extract_protected_entities(english_reply) if hybrid_mode else [],
         )
-        smart_total_tokens = en_in_tokens + en_out_tokens
-        route_used = "Gemini-2.5-Flash English Pivot + Hybrid Entity Shield"
-        quality_score = 94.5
-
-        SEMANTIC_CACHE[english_prompt.lower().strip()] = {
+        if not final_reply:
+            return jsonify({"error": "LLM call failed (translation back)."}), 502
+        core_tokens = count_tokens(english_prompt) + count_tokens(english_reply)
+        # Native-script text the two translation calls had to read/write
+        overhead_tokens = native_in + count_tokens(final_reply)
+        route_used = f"{GROQ_MODEL} (Groq) English pivot" + (" + entity shield" if hybrid_mode else "")
+        SEMANTIC_CACHE.append({
+            "key": english_prompt.lower().strip(),
             "english_reply": english_reply,
-            "final_reply": final_reply
-        }
+            "final_reply": final_reply,
+            "core_tokens": core_tokens,
+        })
 
     smart_latency_ms = round((time.perf_counter() - t1) * 1000, 1)
-    smart_cost_inr = round((smart_total_tokens / 1_000_000) * 210, 5)
+    smart_total_with_overhead = core_tokens + overhead_tokens
+    smart_cost_inr = round(core_tokens / 1_000_000 * RATE_INR_PER_1M, 6)
 
-    token_reduction_pct = round(
-        ((native_total_tokens - smart_total_tokens) / max(1, native_total_tokens)) * 100, 1
-    )
+    reduction_core = round((native_total - core_tokens) / max(1, native_total) * 100, 1)
+    reduction_overhead = round((native_total - smart_total_with_overhead) / max(1, native_total) * 100, 1)
+
+    # Measured quality proxy: share of protected entities that survived in the final reply
+    if protected_terms:
+        kept = sum(1 for t in protected_terms if t in final_reply or t in native_reply)
+        entity_score = round(kept / len(protected_terms) * 100, 1)
+    else:
+        entity_score = None
 
     return jsonify({
         "route_used": route_used,
+        "cache_hit": cache_hit,
+        "api_tokens_spent_on_answer": 0 if cache_hit else core_tokens,
         "hybrid_mode": hybrid_mode,
         "preserved_entities": protected_terms,
         "english_intermediate": english_prompt,
         "english_reply": english_reply,
         "final_reply": final_reply,
+        "native_reply": native_reply,
         "native": {
-            "tokens": native_total_tokens,
+            "tokens": native_total,
             "latency_ms": native_latency_ms,
-            "cost_inr": native_cost_inr
+            "cost_inr": native_cost_inr,
         },
         "tokensathi": {
-            "tokens": smart_total_tokens,
+            "tokens": core_tokens,
+            "overhead_tokens": overhead_tokens,
+            "tokens_with_overhead": smart_total_with_overhead,
             "latency_ms": smart_latency_ms,
             "cost_inr": smart_cost_inr,
-            "token_reduction_pct": token_reduction_pct,
-            "quality_score": quality_score
+            "token_reduction_pct": reduction_core,
+            "token_reduction_pct_with_overhead": reduction_overhead,
+            "quality_score": entity_score,
+            "quality_metric": "protected-entity preservation (not a full quality score)",
         },
-        "cache_size": len(SEMANTIC_CACHE)
+        "cache_size": len(SEMANTIC_CACHE),
     })
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
