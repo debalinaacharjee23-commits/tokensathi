@@ -222,6 +222,25 @@
             <p>Filler stripped • 100% Entities Protected</p>
           </div>
         </div>
+
+        <!-- Zero-LLM & Zero-API Architecture Guarantee -->
+        <div class="grid-3" style="margin-top:14px; margin-bottom:0;">
+          <div class="metric blue">
+            <small>🚫 Zero LLM Overhead</small>
+            <h2 style="font-size:1.3rem;">No Model Calls</h2>
+            <p>Runs 100% deterministically without invoking any external or local LLM to compress prompts.</p>
+          </div>
+          <div class="metric green">
+            <small>🔑 Zero API Keys Needed</small>
+            <h2 style="font-size:1.3rem;">₹0 API Spend</h2>
+            <p>Zero external API tokens consumed during pre-processing; works offline with zero rate limits.</p>
+          </div>
+          <div class="metric purple">
+            <small>🔒 Privacy-First Edge Engine</small>
+            <h2 style="font-size:1.3rem;">100% Local</h2>
+            <p>Sensitive Indic prompts and entities never leave your runtime before hitting your target LLM.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -342,7 +361,7 @@
       document.getElementById("optBadge").textContent = `${r.saved} tokens saved (-${r.pct}%)`;
       document.getElementById("compressedOutput").textContent = r.compressed;
       document.getElementById("meaningStatus").textContent = `Meaning Preserved: PASS • Protected Entities: [${r.entities.join(", ") || "None"}]`;
-      document.getElementById("routerSummary").textContent = `Detected Script: ${r.lang} | Entities Shielded: ${r.entities.join(", ") || "None"} | Cost: ₹0`;
+      document.getElementById("routerSummary").textContent = `Detected Script: ${r.lang} | Entities Shielded: ${r.entities.join(", ") || "None"} | Cost: ₹0 (Zero-LLM / Zero-API)`;
       document.getElementById("raceBefore").textContent = `${r.orig} tokens`;
       document.getElementById("raceAfter").textContent = `${r.opt} tokens (-${r.pct}%)`;
     }
@@ -365,7 +384,7 @@
         const simLatency = Math.max(650, r.orig * 3);
         beforeEl.textContent = `${r.orig} tokens (~${simLatency}ms)`;
         afterEl.textContent = `${r.opt} tokens (1ms • -${r.pct}%)`;
-        summaryEl.textContent = `🏆 TokenSathi Won! Saved ${r.saved} tokens (${r.pct}%) & ${simLatency - 1}ms latency at ₹0 cost | Entities Shielded: [${r.entities.join(", ") || "None"}]`;
+        summaryEl.textContent = `🏆 TokenSathi Won! Saved ${r.saved} tokens (${r.pct}%) & ${simLatency - 1}ms latency at ₹0 cost (Zero-LLM / Zero-API) | Entities Shielded: [${r.entities.join(", ") || "None"}]`;
         render();
         beforeEl.textContent = `${r.orig} tokens (~${simLatency}ms)`;
         afterEl.textContent = `${r.opt} tokens (1ms • -${r.pct}%)`;
