@@ -246,14 +246,13 @@ def compress_prompt_smart(text, language):
     result = re.sub(r"^(hi|hello|hey)[,!.\s]+", "", result, flags=re.IGNORECASE)
     result = re.sub(r"\s+([?.!,])", r"\1", result)
     result = re.sub(r"\s+", " ", result).strip()
-
     if result:
-        result = result.upper() + result[1:]
+        sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', result) if s.strip()]
+        if len(sentences) > 2:
+            result = f"{sentences[0]} {sentences[-1]}"
+        result = result[:1].upper() + result[1:]
         if result[-1] not in ".!?":
             result += "."
-
-    return result if result else cleaned
-
 
 @app.route("/")
 def home():
