@@ -253,6 +253,8 @@ def compress_prompt_smart(text, language):
         result = result[:1].upper() + result[1:]
         if result[-1] not in ".!?":
             result += "."
+                return result if result else cleaned
+
 
 @app.route("/")
 def home():
