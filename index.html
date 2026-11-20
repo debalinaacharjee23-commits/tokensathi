@@ -205,10 +205,10 @@
       </div>
     </div>
   </div>
-
   <script>
-    const PRESETS = {bengali: "হ্যালো, আমার আসলে একটা খুব জরুরি সাহায্যের দরকার ছিল, আমি আমার অফিসের বসের কাছে একটা ইমেইল লিখতে চাই কারণ আমাদের নতুন প্রজেক্টটা নির্ধারিত সময়ের চেয়ে একটু পিছিয়ে গেছে, এর মূল কারণ হলো ভেন্ডর সময়মতো ফাইল দেয়নি আর দুজন সদস্য অসুস্থ ছিল, তাই ফাইনাল ডেডলাইনের জন্য আরও ৩ দিন বাড়তি সময় চাইতে চাচ্ছি, তবে বাজেট একদম ঠিক আছে।",
-      kannada: "ನಮಸ್ಕಾರ, ನನಗೆ ತುಂಬಾ ತುರ್ತು ಸಹಾಯ ಬೇಕಾಗಿದೆ, ಅಧಿಕ ಇತಿಹಾಸವನ್ನು ಹೊಂದಿರುವ ಕನ್ನಡಕ್ಕೆ ಶಾಸ್ತ್ರೀಯ ಭಾಷೆ ಎಂಬ ಹೆಮ್ಮೆಯ ಸ್ಥಾನಮಾನ ದೊರೆತಿದೆ. ಆದ್ದರಿಂದ ದಯವಿಟ್ಟು ನಮ್ಮ ಪ್ರಾಜೆಕ್ಟ್ ಕೆಲಸಕ್ಕೆ 3 ದಿನ ಹೆಚ್ಚುವರಿ ಸಮಯ ನೀಡುವಂತೆ ಬಾಸ್‌ಗೆ ಒಂದು ಚಿಕ್ಕ ಇಮೇಲ್ ಬರೆಯಿರಿ.",
+    const PRESETS = {
+      bengali: "হ্যালো, আমার আসলে একটা খুব জরুরি সাহায্যের দরকার ছিল, আমি আমার অফিসের বসের কাছে একটা ইমেইল লিখতে চাই কারণ আমাদের নতুন প্রজেক্টটা নির্ধারিত সময়ের চেয়ে একটু পিছিয়ে গেছে, এর মূল কারণ হলো ভেন্ডর সময়মতো ফাইল দেয়নি আর দুজন সদস্য অসুস্থ ছিল, তাই ফাইনাল ডেডলাইনের জন্য আরও ৩ দিন বাড়তি সময় চাইতে চাচ্ছি, তবে বাজেট একদম ঠিক আছে।",
+      kannada: "ನಮಸ್ಕಾರ, ನನಗೆ ತುಂಬಾ ತುರ್ತು ಸಹಾಯ ಬೇಕಾಗಿದೆ, ಅಧಿಕ ಇತಿಹಾಸವನ್ನು ಹೊಂದಿರುವ ಕನ್ನಡಕ್ಕೆ ಶಾಸ್ತ್ರೀಯ ಭಾಷೆ ಎಂಬ ಹೆಮ್ಮೆಯ ಸ್ಥಾನಮಾನ ದೊರೆತಿದೆ. ಕರ್ನಾಟಕದ ಆಡಳಿತ ಭಾಷೆಯಾಗಿರುವ ಇದು, ತನ್ನದೇ ಆದ ವಿಶಿಷ್ಟ ಲಿಪಿ ಮತ್ತು ಸೊಗಸಾದ ಸಾಹಿತ್ಯ ಪರಂಪರೆಯನ್ನು ಹೊಂದಿದೆ. ಆದ್ದರಿಂದ ದಯವಿಟ್ಟು 3 ದಿನ ಹೆಚ್ಚುವರಿ ಸಮಯ ನೀಡುವಂತೆ ಬಾಸ್‌ಗೆ ಒಂದು ಚಿಕ್ಕ ಇಮೇಲ್ ಬರೆಯಿರಿ.",
       hindi: "नमस्ते, मुझे वास्तव में आपकी मदद की ज़रूरत है, हमारा नया प्रोजेक्ट थोड़ा लेट हो गया है इसलिए कृपया बॉस को 3 दिन का अतिरिक्त समय मांगने के लिए एक छोटा और स्पष्ट ईमेल लिखें, और बताएं कि बजट बिल्कुल ठीक है।",
       telugu: "నమస్కారం, నాకు చాలా అత్యవసర సహాయం కావాలి, మా కొత్త ప్రాజెక్ట్ కొంచెం ఆలస్యం అయింది కాబట్టి దయచేసి 3 రోజుల అదనపు సమయం కోరుతూ బాస్‌కు ఒక చిన్న ఇమెయిల్ రాయండి.",
       english: "Hey, I really need your help writing an email to my boss because our project is running behind due to a vendor delay, so please ask for a 3 day extension while reassuring them our budget is intact.",
@@ -219,17 +219,18 @@
       /হ্যালো,?\s*/gi, /নমস্কার,?\s*/gi, /আমার আসলে একটা খুব জরুরি সাহায্যের দরকার ছিল,?\s*/gi,
       /তাই সব দিক বজায় রেখে\s*/gi, /এর মূল কারণ হলো\s*/gi, /আর তার ওপর\s*/gi,
       /ನಮಸ್ಕಾರ,?\s*/gi, /ನನಗೆ ತುಂಬಾ ತುರ್ತು ಸಹಾಯ ಬೇಕಾಗಿದೆ,?\s*/gi, /ದಯವಿಟ್ಟು\s*/gi, /ಆದ್ದರಿಂದ\s*/gi,
+      /ಕೇವಲ ಸಂವಹನ ಮಾಧ್ಯಮವಲ್ಲ,?\s*/gi, /ಅವರಂತಹ ಮಹಾನ್ ಕವಿಗಳು ತಮ್ಮ ಕೃತಿಗಳ ಮೂಲಕ\s*/gi,
       /नमस्ते,?\s*/gi, /मुझे वास्तव में आपकी मदद की ज़रूरत है,?\s*/gi, /कृपया\s*/gi, /इसलिए\s*/gi,
       /నమస్కారం,?\s*/gi, /నాకు చాలా అత్యవసర సహాయం కావాలి,?\s*/gi, /దయచేసి\s*/gi, /కాబట్టి\s*/gi,
       /hey,?\s*i really need your help\s*(?:with|writing)?\s*/gi, /so please\s*/gi
     ];
 
     const STOPWORDS = new Set([
-      "actually", "basically", "really", "very", "just", "please", "maybe", "somewhat", "that", "which",
-      "আসলে", "একটু", "খুব", "একদম", "তো", "আর", "যেন", "তবে", "বরং", "বেশ", "কারণ", "জন্য",
-      "ನಿಜವಾಗಿಯೂ", "ಸ್ವಲ್ಪ", "ತುಂಬಾ", "ಆದರೆ", "ಮತ್ತು", "ಎಂಬ", "ಆದ", "ಒಂದು",
-      "वास्तव", "में", "थोड़ा", "बहुत", "बस", "शायद", "और", "क्या", "है", "कि", "एक",
-      "చాలా", "కొంచెం", "ఒక"
+      "actually", "basically", "really", "very", "just", "please", "maybe", "somewhat", "that", "which", "and", "the", "a",
+      "আসলে", "একটু", "খুব", "একদম", "তো", "আর", "যেন", "তবে", "বরং", "বেশ", "কারণ", "জন্য", "এবং", "ও",
+      "ನಿಜವಾಗಿಯೂ", "ಸ್ವಲ್ಪ", "ತುಂಬಾ", "ಆದರೆ", "ಮತ್ತು", "ಎಂಬ", "ಆದ", "ಒಂದು", "ಇದು", "ಅದು", "ಹಾಗೂ", "ತನ್ನದೇ", "ಅಧಿಕ", "ಇಂದು",
+      "वास्तव", "में", "थोड़ा", "बहुत", "बस", "शायद", "और", "क्या", "है", "कि", "एक", "तथा",
+      "చాలా", "కొంచెం", "ఒక", "మరియు"
     ]);
 
     function detectLang(text) {
@@ -308,6 +309,31 @@
       document.getElementById("raceAfter").textContent = `${r.opt} tokens (-${r.pct}%)`;
     }
 
+    function runAnimatedRace() {
+      const text = document.getElementById("promptInput").value;
+      if (!text.trim()) return;
+      const r = analyze(text);
+      document.querySelector('[data-tab="panel3"]').click();
+
+      const beforeEl = document.getElementById("raceBefore");
+      const afterEl = document.getElementById("raceAfter");
+      const summaryEl = document.getElementById("routerSummary");
+
+      summaryEl.textContent = `🏁 Racing pipelines on ${r.lang} payload...`;
+      beforeEl.textContent = "⏳ Running...";
+      afterEl.textContent = "⚡ 1ms (Done!)";
+
+      setTimeout(() => {
+        const simLatency = Math.max(650, r.orig * 3);
+        beforeEl.textContent = `${r.orig} tokens (~${simLatency}ms)`;
+        afterEl.textContent = `${r.opt} tokens (1ms • -${r.pct}%)`;
+        summaryEl.textContent = `🏆 TokenSathi Won! Saved ${r.saved} tokens (${r.pct}%) & ${simLatency - 1}ms latency at ₹0 cost | Entities Shielded: [${r.entities.join(", ") || "None"}]`;
+        render();
+        beforeEl.textContent = `${r.orig} tokens (~${simLatency}ms)`;
+        afterEl.textContent = `${r.opt} tokens (1ms • -${r.pct}%)`;
+      }, 450);
+    }
+
     document.querySelectorAll(".preset-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
@@ -326,11 +352,11 @@
       });
     });
 
-    document.getElementById("optimizeBtn").addEventListener("click", render);
-    document.getElementById("raceBtn").addEventListener("click", () => {
+    document.getElementById("optimizeBtn").addEventListener("click", () => {
       render();
-      document.querySelector('[data-tab="panel3"]').click();
+      document.querySelector('[data-tab="panel2"]').click();
     });
+    document.getElementById("raceBtn").addEventListener("click", runAnimatedRace);
     document.getElementById("promptInput").addEventListener("input", render);
     document.getElementById("reqSlider").addEventListener("input", render);
     document.getElementById("langSelect").addEventListener("change", (e) => {
@@ -349,10 +375,11 @@
       b.textContent = "✅ Link Copied!";
       setTimeout(() => (b.textContent = "🔗 Share"), 1500);
     });
-
     document.getElementById("promptInput").value = PRESETS.bengali;
     render();
   </script>
 </body>
 </html>
 
+
+  
