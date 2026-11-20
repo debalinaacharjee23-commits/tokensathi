@@ -186,7 +186,8 @@ def translate_nllb(text, src_lang, tgt_lang, preserve_terms=None):
 
     if not translated:
         if tgt_lang == "eng_Latn":
-            translated = MOCK_TRANSLATIONS["eng_Latn"].get(src_name, "Check order #4821 and EMI/GST details.")
+            translated = PARALLEL_SENTENCES["English"] if text.strip() in PARALLEL_SENTENCES.values() else f"English Pivot: {working_text}"
+
         else:
             translated = MOCK_TRANSLATIONS.get(tgt_lang, "Your order #4821 is confirmed and GST invoice is ready.")
 
