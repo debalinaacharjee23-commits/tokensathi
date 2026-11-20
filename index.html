@@ -214,12 +214,12 @@
           <div class="metric orange">
             <small>🐢 Standard Native Pipeline</small>
             <h2 id="raceBefore">0 tokens</h2>
-            <p>Uncompressed UTF-8 Indic payload • 3-byte character overhead</p>
+            <p id="beforeSub">Uncompressed UTF-8 Indic payload • 3-byte character overhead</p>
           </div>
           <div class="metric green">
             <small>⚡ TokenSathi Rule Pipeline (1ms)</small>
             <h2 id="raceAfter">0 tokens</h2>
-            <p>Phonetic ASCII Packed • Output Guarded • ₹0 Cost</p>
+           <p id="raceSub">Phonetic ASCII Packed • Output Guarded • ₹0 Cost</p> 
           </div>
         </div>
       </div>
@@ -267,7 +267,7 @@
       'अ':'a','आ':'aa','इ':'i','ई':'ee','उ':'u','ऊ':'oo','ए':'e','ऐ':'ai','ओ':'o','औ':'au',
       'क':'k','ख':'kh','ग':'g','घ':'gh','च':'ch','छ':'chh','ज':'j','झ':'jh','ट':'t','ठ':'th','ड':'d','ढ':'dh','ण':'n',
       'त':'t','थ':'th','द':'d','ध':'dh','न':'n','प':'p','फ':'ph','ब':'b','भ':'bh','म':'m','य':'y','र':'r','ल':'l','व':'v','श':'sh','ष':'sh','स':'s','ह':'h',
-      'ा':'a','ि':'i','ी':'ee','ु':'u','ू':'oo','े':'e','ै':'ai','ो':'o','ौ':'au','्':'','ं':'n',
+      'ा':'a','ि':'i','ी':'ee','ु':'u','ू':'oo','े':'e','ै':'ai','ो':'o','ौ':'au','ॉ':'o','ऑ':'o','्':'','ं':'n','़':'',
       'అ':'a','ఆ':'aa','ఇ':'i','ఈ':'ee','ఉ':'u','ఊ':'oo','ఎ':'e','ఏ':'e','ఐ':'ai','ఒ':'o','ఓ':'o','ఔ':'au',
       'క':'k','ఖ':'kh','గ':'g','ఘ':'gh','చ':'ch','ఛ':'chh','జ':'j','ఝ':'jh','ట':'t','ఠ':'th','డ':'d','ఢ':'dh','ణ':'n',
       'త':'t','థ':'th','ద':'d','ధ':'dh','న':'n','ప':'p','ఫ':'ph','బ':'b','భ':'bh','మ':'m','య':'y','ర':'r','ల':'l','వ':'v','శ':'sh','ష':'sh','స':'s','హ':'h','ళ':'l',
@@ -370,7 +370,14 @@
         `Script: ${r.lang} | Phonetic ASCII: ${r.usePhonetic ? "ON" : "OFF"} | Output Guard: ${r.useGuard ? "ON" : "OFF"} | Cost: ₹0`;
       document.getElementById("raceBefore").textContent = `${r.orig} tokens`;
       document.getElementById("raceAfter").textContent = `${r.opt} tokens (-${r.pct}%)`;
+          document.getElementById("raceAfter").textContent = `${r.opt} tokens (-${r.pct}%)`;
+      document.getElementById("beforeSub").textContent = r.lang === "English"
+        ? "Uncompressed conversational filler • 1-byte ASCII"
+        : "Uncompressed UTF-8 Indic payload • 3-byte character overhead";
+      document.getElementById("raceSub").textContent =
+        `${r.usePhonetic ? "Phonetic ASCII Packed" : "Native Script Pruned"} • ${r.useGuard ? "Output Guarded" : "Standard Output"} • ₹0 Cost`;
     }
+}
 
     function runAnimatedRace() {
       const text = document.getElementById("promptInput").value;
