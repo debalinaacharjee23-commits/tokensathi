@@ -1,0 +1,4 @@
+flask
+tiktoken
+gunicorn
+requests
