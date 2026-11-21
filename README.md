@@ -34,11 +34,12 @@ Modern LLM tokenizers (BPE) are trained primarily on English text. Because UTF-8
 
 ### Local Setup
 ```bash
-git clone https://github.com
+git clone https://github.com/debalinaacharjee23-commits/tokensathi
 cd tokensathi
 pip install -r requirements.txt
 python app.py
 ```
+
 
 ### REST API Endpoint (`POST /api/optimize`)
 ```bash
